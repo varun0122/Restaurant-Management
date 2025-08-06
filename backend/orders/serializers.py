@@ -1,3 +1,5 @@
+# orders/serializers.py
+
 from rest_framework import serializers
 from django.db.models import Sum, F, DecimalField
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -6,7 +8,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from menu.models import Dish
 from customers.models import Customer
 from .models import Order, OrderItem
-from billing.models import Bill # It's safe to import models
+from billing.models import Bill
 
 # Import the correct CustomerSerializer from the customers app
 from customers.serializers import CustomerSerializer
@@ -29,7 +31,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class DishForOrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dish
-        # This is the fix for the repeat order bug
         fields = ['id', 'name', 'price', 'food_type', 'image_url']
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -38,29 +39,23 @@ class OrderItemSerializer(serializers.ModelSerializer):
         model = OrderItem
         fields = ['id', 'dish', 'quantity']
 
-# --- FIX: We define the MinimalBillSerializer here to break the circular import ---
 class MinimalBillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bill
         fields = ['id', 'is_paid']
 
 # ====================================================================
-#  Main OrderSerializer
+#  Main OrderSerializer (For Reading Data)
 # ====================================================================
 class OrderSerializer(serializers.ModelSerializer):
     customer = CustomerSerializer(read_only=True)
     items = OrderItemSerializer(many=True, read_only=True)
     bill = MinimalBillSerializer(read_only=True, allow_null=True)
-    
-    # --- FIX #1: The field for payment status string ---
     payment_status = serializers.SerializerMethodField()
-    
-    # --- FIX #2: The field for the total amount that was missing ---
     total_amount = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        # Ensure both new fields are included here
         fields = [
             'id', 
             'customer', 
@@ -69,92 +64,82 @@ class OrderSerializer(serializers.ModelSerializer):
             'items', 
             'table_number', 
             'bill',
-            'payment_status',  # <-- Added
-            'total_amount'     # <-- Added
+            'payment_status',
+            'total_amount'
         ]
 
     def get_payment_status(self, obj):
-        """
-        Returns "Paid" or "Unpaid" based on the related bill's status.
-        """
-        # 'obj' is the Order instance.
         if obj.bill and obj.bill.is_paid:
             return "Paid"
         return "Unpaid"
 
     def get_total_amount(self, obj):
-        """
-        Calculates the total amount for the order by summing its item prices.
-        """
-        # This robustly calculates the sum of (quantity * price) for all items.
         total = obj.items.aggregate(
             total=Sum(F('quantity') * F('dish__price'), output_field=DecimalField())
         )['total']
-        # Return the calculated total, or 0.00 if there are no items.
         return total or 0.00
 
 # ====================================================================
-#  Write-Only Serializer
+#  Write-Only Serializer (For POS and Customer Orders)
 # ====================================================================
+class OrderItemWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = ['dish', 'quantity']
+
 class OrderWriteSerializer(serializers.ModelSerializer):
-    customer_id = serializers.IntegerField()
-    items = serializers.ListField(child=serializers.DictField(), write_only=True)
-    table_number = serializers.IntegerField()
+    items = OrderItemWriteSerializer(many=True)
+    
+    # This field is now optional to support staff-placed orders
+    customer = serializers.PrimaryKeyRelatedField(
+        queryset=Customer.objects.all(),
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
         model = Order
-        fields = ['customer_id', 'items', 'table_number']
+        fields = ['customer', 'table_number', 'items']
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
+        
+        # The view will handle assigning a "Walk-in" customer if needed
         order = Order.objects.create(**validated_data)
+        
         for item_data in items_data:
-            OrderItem.objects.create(
-                order=order,
-                dish_id=item_data['dish_id'],
-                quantity=item_data['quantity']
-            )
+            OrderItem.objects.create(order=order, **item_data)
+            
         return order
 
 # ====================================================================
-#  Dashboard Serializer
+#  Other Specific-Purpose Serializers
 # ====================================================================
 class RecentOrderSerializer(serializers.ModelSerializer):
     customer = CustomerSerializer(read_only=True)
     items = OrderItemSerializer(many=True, read_only=True)
-    
-    # --- FIX #1: Add the payment status field ---
     payment_status = serializers.SerializerMethodField()
-
-    # --- FIX #2: Add the total amount field ---
     total_amount = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        # Add the two new fields to this list
         fields = [
             'id', 
             'customer', 
             'table_number', 
-            'total_amount', # <-- Add this
+            'total_amount',
             'status', 
-            'payment_status', # <-- Add this
+            'payment_status',
             'created_at', 
             'items'
         ]
 
     def get_payment_status(self, obj):
-        """
-        Returns "Paid" or "Unpaid" based on the related bill.
-        """
         if hasattr(obj, 'bill') and obj.bill and obj.bill.is_paid:
             return "Paid"
         return "Unpaid"
 
     def get_total_amount(self, obj):
-        """
-        Calculates the total amount for this specific order.
-        """
         total = obj.items.aggregate(
             total=Sum(F('quantity') * F('dish__price'), output_field=DecimalField())
         )['total']
@@ -165,4 +150,4 @@ class OrderSerializerForBilling(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['items'] 
+        fields = ['items']

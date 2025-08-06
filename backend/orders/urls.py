@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from .views import MyTokenObtainPairView
 urlpatterns = [
+    path('pos-place/', views.place_pos_order, name='pos-place-order'),
     path('place/', views.place_order),
     path('history/<str:phone_number>/', views.order_history),
     path('repeat/<int:order_id>/', views.repeat_order),

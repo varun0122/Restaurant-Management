@@ -8,6 +8,7 @@ import CategoryFormModal from '../components/CategoryFormModal';
 const MenuManagementPage = () => {
   const [dishes, setDishes] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [allIngredients, setAllIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
@@ -20,12 +21,14 @@ const MenuManagementPage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [dishesResponse, categoriesResponse] = await Promise.all([
+      const [dishesResponse, categoriesResponse,ingredientsResponse] = await Promise.all([
         apiClient.get('/menu/dishes/'),
-        apiClient.get('/menu/categories/')
+        apiClient.get('/menu/categories/'),
+        apiClient.get('/inventory/')
       ]);
       setDishes(dishesResponse.data);
       setCategories(categoriesResponse.data);
+      setAllIngredients(ingredientsResponse.data); 
     } catch (err) {
       setError('Failed to fetch menu data. Please try again later.');
       console.error(err);
@@ -37,7 +40,10 @@ const MenuManagementPage = () => {
   useEffect(() => {
     fetchData();
   }, []);
-
+  const refreshDishData = async () => {
+      const dishesResponse = await apiClient.get('/menu/dishes/');
+      setDishes(dishesResponse.data);
+  };
   const handleDownloadSample = () => {
     // --- FIX: Use the correct 'food_type' values from the Django admin ---
     const sampleData = [
@@ -250,7 +256,7 @@ const MenuManagementPage = () => {
         </table>
       </div>
 
-      <DishFormModal isOpen={isDishModalOpen} onClose={handleCloseDishModal} onSave={handleSaveDish} dish={editingDish} categories={categories} />
+      <DishFormModal isOpen={isDishModalOpen} onClose={handleCloseDishModal} onSave={handleSaveDish} dish={editingDish} categories={categories} allIngredients={allIngredients} onDataRefresh={refreshDishData}  />
       <CategoryFormModal isOpen={isCategoryModalOpen} onClose={handleCloseCategoryModal} onSave={handleSaveCategory} category={editingCategory} />
     </div>
   );

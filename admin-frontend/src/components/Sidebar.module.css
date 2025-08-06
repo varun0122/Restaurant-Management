@@ -1,3 +1,4 @@
+/* Sidebar.module.css */
 .sidebar {
   width: 250px;
   background-color: #2c3e50;
@@ -8,6 +9,7 @@
   position: fixed;
   top: 0;
   left: 0;
+  overflow-y: auto; /* Added for scrollability */
 }
 
 .title {
@@ -54,7 +56,6 @@
 .logoutButton:hover {
   background-color: #c0392b;
 }
-/* Add these styles to the end of Sidebar.module.css */
 
 .overlay {
   display: none;

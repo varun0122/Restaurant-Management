@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'tables',
     'import_export',
     'billing',
-    'accounts'
+    'accounts',
+    'inventory',
 ]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

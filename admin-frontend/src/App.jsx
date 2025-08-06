@@ -13,8 +13,10 @@ import AdminQRDownload from './pages/AdminQRDownload';
 import MenuManagementPage from './pages/MenuManagementPage';
 import StaffManagementPage from './pages/StaffManagementPage';
 import StaffFormModal from './components/StaffFormModal';
+import InventoryPage from './pages/InventoryPage';
+import POSPage from './pages/POSPage';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
-
 // This component wraps our pages with the sidebar
 const AppLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -37,17 +39,18 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         
-        {/* Wrap all protected pages in the AppLayout */}
-        <Route path="/" element={<AppLayout><DashboardPage /></AppLayout>} />
+        {/* --- Public routes for all staff --- */}
+        <Route path="/pos" element={<AppLayout><POSPage /></AppLayout>} />
         <Route path="/kitchen" element={<AppLayout><KitchenDashboard /></AppLayout>} />
-        <Route path="/orders" element={<AppLayout><AllOrdersPage /></AppLayout>} />
-        <Route path="/qr-codes" element={<AppLayout><AdminQRDownload /></AppLayout>} />
-        <Route path="/billing" element={<AppLayout><BillingPage /></AppLayout>} />
-        
-        {/* --- ADD THE ROUTE FOR THE NEW PAGE HERE --- */}
-        <Route path="/menu" element={<AppLayout><MenuManagementPage /></AppLayout>} />
-        <Route path="/staff" element={<AppLayout><StaffManagementPage /></AppLayout>} />
 
+        {/* --- Protected routes for superusers only --- */}
+        <Route path="/" element={<AppLayout><ProtectedRoute><DashboardPage /></ProtectedRoute></AppLayout>} />
+        <Route path="/orders" element={<AppLayout><ProtectedRoute><AllOrdersPage /></ProtectedRoute></AppLayout>} />
+        <Route path="/qr-codes" element={<AppLayout><ProtectedRoute><AdminQRDownload /></ProtectedRoute></AppLayout>} />
+        <Route path="/billing" element={<AppLayout><ProtectedRoute><BillingPage /></ProtectedRoute></AppLayout>} />
+        <Route path="/menu" element={<AppLayout><ProtectedRoute><MenuManagementPage /></ProtectedRoute></AppLayout>} />
+        <Route path="/staff" element={<AppLayout><ProtectedRoute><StaffManagementPage /></ProtectedRoute></AppLayout>} />
+        <Route path="/inventory" element={<AppLayout><ProtectedRoute><InventoryPage /></ProtectedRoute></AppLayout>} />
       </Routes>
     </Router>
   );

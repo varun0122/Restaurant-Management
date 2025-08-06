@@ -8,18 +8,37 @@ from rest_framework.response import Response
 import json
 import zipfile
 from django.core.files.base import ContentFile
-from .models import Category, Dish
-from .serializers import CategorySerializer, DishSerializer, DishWriteSerializer
+from .models import Category, Dish, DishIngredient
+from .serializers import (
+    CategorySerializer, 
+    DishSerializer, 
+    DishWriteSerializer, 
+    DishIngredientSerializer
+)
 
+class DishIngredientViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for managing the ingredients of a specific dish.
+    """
+    serializer_class = DishIngredientSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        return DishIngredient.objects.filter(dish_id=self.kwargs['dish_pk'])
+
+    def perform_create(self, serializer):
+        serializer.save(dish_id=self.kwargs['dish_pk'])
+
+      
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all().order_by('name')
     serializer_class = CategorySerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class DishViewSet(viewsets.ModelViewSet):
     queryset = Dish.objects.all().order_by('name')
-    permission_classes = [IsAuthenticatedOrReadOnly] # Allow read for anyone, write for admins
+    permission_classes = [IsAuthenticatedOrReadOnly] 
     parser_classes = (MultiPartParser, FormParser)
 
     def get_serializer_class(self):
@@ -27,25 +46,61 @@ class DishViewSet(viewsets.ModelViewSet):
             return DishSerializer
         return DishWriteSerializer
 
+    # --- NEW: Helper function to check inventory ---
+    def _get_dishes_with_availability(self, queryset):
+        """
+        Helper method to check inventory for a given queryset of dishes
+        and return the serialized data with an updated 'is_available' flag.
+        """
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+
+        for dish_data in data:
+            if not dish_data['is_available']:
+                continue # Respect manual 'unavailable' setting
+
+            try:
+                dish = Dish.objects.get(id=dish_data['id'])
+                can_be_made = True
+                for recipe_item in dish.dishingredient_set.all():
+                    if recipe_item.ingredient.current_stock < recipe_item.quantity_required:
+                        can_be_made = False
+                        break
+                dish_data['is_available'] = can_be_made
+            except Dish.DoesNotExist:
+                dish_data['is_available'] = False
+        
+        return data
+
+    def list(self, request, *args, **kwargs):
+        """
+        Custom list action that now uses the helper function.
+        """
+        queryset = self.get_queryset()
+        data = self._get_dishes_with_availability(queryset)
+        return Response(data)
+
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
     def specials(self, request):
-        special_dishes = Dish.objects.filter(is_special=True)
-        serializer = self.get_serializer(special_dishes, many=True)
-        return Response(serializer.data)
+        """
+        Custom action for specials that now uses the helper function.
+        """
+        queryset = self.get_queryset().filter(is_special=True)
+        data = self._get_dishes_with_availability(queryset)
+        return Response(data)
 
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
     def most_liked(self, request):
-        top_dishes = Dish.objects.order_by('-like_count')[:5]
-        serializer = self.get_serializer(top_dishes, many=True)
-        return Response(serializer.data)
+        """
+        Custom action for most-liked that now uses the helper function.
+        """
+        queryset = self.get_queryset().order_by('-like_count')[:5]
+        data = self._get_dishes_with_availability(queryset)
+        return Response(data)
 
-    # --- NEW: Bulk import logic moved into a custom action ---
     @action(detail=False, methods=['post'], permission_classes=[IsAdminUser])
     def bulk_import(self, request):
-        """
-        Allows bulk creation of dishes from a .zip file.
-        The zip file must contain 'menu.json' and an 'images/' folder.
-        """
+        # ... (bulk import logic remains the same) ...
         if 'file' not in request.FILES:
             return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
 

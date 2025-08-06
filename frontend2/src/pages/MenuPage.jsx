@@ -15,11 +15,7 @@ const MenuPage = ({
   const [liked, setLiked] = useState([]);
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // State for modal
   const [modalDish, setModalDish] = useState(null);
-
-  // Expand/collapse logic
   const [isMostLikedExpanded, setIsMostLikedExpanded] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState({});
   const location = useLocation();
@@ -32,11 +28,10 @@ const MenuPage = ({
     }
     const fetchMenu = async () => {
       try {
-        // --- FIX: Updated the API URLs to the correct endpoints ---
         const [specialsRes, likedRes, menuRes] = await Promise.all([
           axios.get('http://127.0.0.1:8000/api/menu/dishes/specials/'),
           axios.get('http://127.0.0.1:8000/api/menu/dishes/most_liked/'),
-          axios.get('http://127.0.0.1:8000/api/menu/dishes/') // This is the correct endpoint for all dishes
+          axios.get('http://127.0.0.1:8000/api/menu/dishes/')
         ]);
         setSpecials(specialsRes.data);
         setLiked(likedRes.data);
@@ -50,9 +45,7 @@ const MenuPage = ({
     fetchMenu();
   }, [location]);
 
-  // Helper functions for expand/collapse
-  const toggleMostLikedExpansion = () =>
-    setIsMostLikedExpanded((prev) => !prev);
+  const toggleMostLikedExpansion = () => setIsMostLikedExpanded((prev) => !prev);
   const toggleCategoryExpansion = (categoryName) => {
     setExpandedCategories((prev) => ({
       ...prev,
@@ -60,7 +53,6 @@ const MenuPage = ({
     }));
   };
 
-  // Filtering logic
   const filterDishes = (dishes) => {
     const foodTypeFiltered =
       selectedFoodType === 'all'
@@ -81,13 +73,11 @@ const MenuPage = ({
   const filteredSpecials = filterDishes(specials);
   const filteredLiked = filterDishes(liked);
   const filteredMenu = filterDishes(menu);
-
   const initialLikedLimit = 2;
   const likedDishesToShow = isMostLikedExpanded
     ? filteredLiked
     : filteredLiked.slice(0, initialLikedLimit);
 
-  // Grouped menu by category
   const groupedMenu = filteredMenu.reduce((acc, dish) => {
     const categoryName = dish.category ? dish.category.name : 'Uncategorized';
     if (!acc[categoryName]) acc[categoryName] = [];
@@ -95,17 +85,9 @@ const MenuPage = ({
     return acc;
   }, {});
 
-  // Order for categories
   const categoryDisplayOrder = [
-    'Appetizers',
-    'Soups & Salads',
-    'Starters',
-    'Main Course',
-    'Rice Items',
-    'Noodles',
-    'Sea Food',
-    'Desserts',
-    'Beverages'
+    'Appetizers', 'Soups & Salads', 'Starters', 'Main Course',
+    'Rice Items', 'Noodles', 'Sea Food', 'Desserts', 'Beverages'
   ];
   const sortedCategories = Object.keys(groupedMenu).sort((a, b) => {
     const indexA = categoryDisplayOrder.indexOf(a);
@@ -115,89 +97,92 @@ const MenuPage = ({
     return indexA - indexB;
   });
 
-  if (loading)
-    return (
-      <div className="text-center mt-5">
-        <h4>Loading menu...</h4>
-      </div>
-    );
+  if (loading) return <div className="text-center mt-5"><h4>Loading menu...</h4></div>;
 
   const noResults =
     filteredSpecials.length === 0 &&
     filteredLiked.length === 0 &&
     filteredMenu.length === 0;
 
-  // DishCard: minimal, just image, name, price, and add button
+  // --- UPDATED DishCard Component ---
   const DishCard = ({ dish, cart, setCart, setModalDish }) => {
-  const item = cart.find(i => i.id === dish.id);
-  const quantity = item ? item.quantity : 0;
+    const item = cart.find(i => i.id === dish.id);
+    const quantity = item ? item.quantity : 0;
 
-  return (
-    <div className="col-6 col-md-4 col-lg-3 mb-4">
-      <div className="card h-100 shadow-sm">
-        {dish.image_url && (
-          <img
-            src={`http://127.0.0.1:8000${dish.image_url}`}
-            className="card-img-top"
-            alt={dish.name}
-            style={{ height: '180px', objectFit: 'cover' }}
-          />
-        )}
-        <div className="card-body d-flex flex-column">
-          <div className="d-flex align-items-center mb-2">
-            <span
-              style={{
-                width: '12px',
-                height: '12px',
-                marginRight: '8px',
-                border: '1px solid #888',
-                backgroundColor: dish.food_type === 'veg' ? '#28a745' : '#dc3545'
-              }}
-            ></span>
-            <h5 className="card-title mb-0">{dish.name}</h5>
-          </div>
-          <p className="card-text mb-2">₹{dish.price}</p>
-          {/* Show quantity UI if in cart, else Add to Cart */}
-          {quantity === 0 ? (
-            <button
-              className="btn btn-success mt-auto"
-              onClick={() => setModalDish(dish)}
-            >
-              Add to Cart
-            </button>
-          ) : (
-            <div className="d-flex justify-content-center align-items-center mt-auto">
-              <button
-                className="btn btn-outline-danger btn-sm"
-                onClick={() => setCart(
-                  cart.map(item =>
-                    item.id === dish.id
-                      ? { ...item, quantity: item.quantity - 1 }
-                      : item
-                  ).filter(item => item.quantity > 0)
-                )}
-              >-</button>
-              <span className="mx-2">{quantity}</span>
-              <button
-                className="btn btn-outline-success btn-sm"
-                onClick={() => setCart(
-                  cart.map(item =>
-                    item.id === dish.id
-                      ? { ...item, quantity: item.quantity + 1 }
-                      : item
-                  )
-                )}
-              >+</button>
+    return (
+      <div className="col-6 col-md-4 col-lg-3 mb-4">
+        <div className="card h-100 shadow-sm position-relative">
+          {/* NEW: Overlay for out of stock items */}
+          {!dish.is_available && (
+            <div className="card-img-overlay d-flex justify-content-center align-items-center"
+                 style={{ backgroundColor: 'rgba(255, 255, 255, 0.7)', zIndex: 2 }}>
+              <h5 className="text-danger font-weight-bold">Out of Stock</h5>
             </div>
           )}
+          
+          {dish.image_url && (
+            <img
+              src={`http://127.0.0.1:8000${dish.image_url}`}
+              className="card-img-top"
+              alt={dish.name}
+              style={{ height: '180px', objectFit: 'cover', filter: !dish.is_available ? 'grayscale(100%)' : 'none' }}
+            />
+          )}
+          <div className="card-body d-flex flex-column">
+            <div className="d-flex align-items-center mb-2">
+              <span
+                style={{
+                  width: '12px', height: '12px', marginRight: '8px',
+                  border: '1px solid #888',
+                  backgroundColor: dish.food_type === 'veg' ? '#28a745' : '#dc3545'
+                }}
+              ></span>
+              <h5 className="card-title mb-0">{dish.name}</h5>
+            </div>
+            <p className="card-text mb-2">₹{dish.price}</p>
+            
+            {/* NEW: Disable button if out of stock */}
+            {quantity === 0 ? (
+              <button
+                className="btn btn-success mt-auto"
+                onClick={() => setModalDish(dish)}
+                disabled={!dish.is_available}
+              >
+                {dish.is_available ? 'Add to Cart' : 'Unavailable'}
+              </button>
+            ) : (
+              <div className="d-flex justify-content-center align-items-center mt-auto">
+                <button
+                  className="btn btn-outline-danger btn-sm"
+                  onClick={() => setCart(
+                    cart.map(item =>
+                      item.id === dish.id
+                        ? { ...item, quantity: item.quantity - 1 }
+                        : item
+                    ).filter(item => item.quantity > 0)
+                  )}
+                >-</button>
+                <span className="mx-2">{quantity}</span>
+                <button
+                  className="btn btn-outline-success btn-sm"
+                  onClick={() => setCart(
+                    cart.map(item =>
+                      item.id === dish.id
+                        ? { ...item, quantity: item.quantity + 1 }
+                        : item
+                    )
+                  )}
+                >+</button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
-return (
-    <div className="container mt-4" style={{ paddingBottom: 90 /* avoid overlap with cart bar */ }}>
-      {/* Today's Specials */}
+    );
+  };
+
+  return (
+    <div className="container mt-4" style={{ paddingBottom: 90 }}>
       {filteredSpecials.length > 0 && (
         <>
           <h4 className="mb-3">🔥 Today's Specials</h4>
@@ -209,7 +194,6 @@ return (
         </>
       )}
 
-      {/* Most Liked */}
       {filteredLiked.length > 0 && (
         <>
           <h4 className="mt-5 mb-3">⭐ Most Liked Dishes</h4>
@@ -220,10 +204,7 @@ return (
           </div>
           {filteredLiked.length > initialLikedLimit && (
             <div className="text-center mt-3">
-              <button
-                className="btn btn-outline-primary"
-                onClick={toggleMostLikedExpansion}
-              >
+              <button className="btn btn-outline-primary" onClick={toggleMostLikedExpansion}>
                 {isMostLikedExpanded ? 'Show Less' : 'Show More'}
               </button>
             </div>
@@ -231,7 +212,6 @@ return (
         </>
       )}
 
-      {/* Full Menu Section */}
       {filteredMenu.length > 0 && (
         <>
           <h4 className="mt-5 mb-3">📋 Full Menu</h4>
@@ -253,13 +233,7 @@ return (
                   : dishesInCategory.slice(0, initialLimit);
                 return (
                   <div key={categoryName} className="mb-5">
-                    <h5
-                      className="mb-3"
-                      style={{
-                        borderBottom: '2px solid #eee',
-                        paddingBottom: '8px'
-                      }}
-                    >
+                    <h5 className="mb-3" style={{ borderBottom: '2px solid #eee', paddingBottom: '8px' }}>
                       {categoryName}
                     </h5>
                     <div className="row">
@@ -269,10 +243,7 @@ return (
                     </div>
                     {dishesInCategory.length > initialLimit && (
                       <div className="text-center mt-3">
-                        <button
-                          className="btn btn-outline-primary"
-                          onClick={() => toggleCategoryExpansion(categoryName)}
-                        >
+                        <button className="btn btn-outline-primary" onClick={() => toggleCategoryExpansion(categoryName)}>
                           {isExpanded ? 'Show Less' : 'Show More'}
                         </button>
                       </div>
@@ -285,7 +256,6 @@ return (
         </>
       )}
 
-      {/* No Results Message */}
       {noResults && (
         <div className="text-center mt-5">
           <h4>No dishes found</h4>
@@ -293,17 +263,10 @@ return (
         </div>
       )}
 
-      {/* Modal for Add to Cart */}
       {modalDish && (
-        <AddItemModal
-          dish={modalDish}
-          cart={cart}
-          setCart={setCart}
-          onClose={() => setModalDish(null)}
-        />
+        <AddItemModal dish={modalDish} cart={cart} setCart={setCart} onClose={() => setModalDish(null)} />
       )}
 
-      {/* Sticky View Cart Bar */}
       <ViewCartBar cart={cart} />
     </div>
   );

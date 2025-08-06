@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import LoginModal from '../components/LoginModal';
 
 const CartPage = ({ cart, setCart, onOrderPlaced, onLogin }) => {
-  // --- FIX: useNavigate must be called inside the component function. ---
   const navigate = useNavigate();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
@@ -34,13 +33,26 @@ const CartPage = ({ cart, setCart, onOrderPlaced, onLogin }) => {
       quantity: item.quantity,
     }));
 
+    // --- FIX: Get the authentication token from localStorage ---
+    const token = localStorage.getItem('customer_access_token');
+    if (!token) {
+        alert("Authentication error. Please log in again.");
+        setIsLoginModalOpen(true);
+        return;
+    }
+
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    };
+
     try {
-      // --- FIX: Capture the response from the server ---
-      const response = await axios.post('http://127.0.0.1:8000/api/orders/place/',{
+      const response = await axios.post('http://127.0.0.1:8000/api/orders/place/', {
         customer_id: loggedInCustomer.id,
         items: items_data,
         table_number: parseInt(tableNumber, 10),
-      });
+      }, config); // <-- Pass the config with the token here
       
       alert("✅ Order placed successfully!");
       
@@ -48,10 +60,9 @@ const CartPage = ({ cart, setCart, onOrderPlaced, onLogin }) => {
       localStorage.removeItem("cart");
       onOrderPlaced();
 
-      // --- FIX: Redirect to the specific order status page ---
       navigate(`/order-status/${response.data.id}`);
 
-    } catch (err)      {
+    } catch (err) {
       console.error("Order placement failed:", err.response?.data || err.message);
       alert("❌ Failed to place order. Please try again.");
     }
