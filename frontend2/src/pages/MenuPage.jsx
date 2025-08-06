@@ -32,10 +32,11 @@ const MenuPage = ({
     }
     const fetchMenu = async () => {
       try {
+        // --- FIX: Updated the API URLs to the correct endpoints ---
         const [specialsRes, likedRes, menuRes] = await Promise.all([
-          axios.get('http://127.0.0.1:8000/api/menu/specials/'),
-          axios.get('http://127.0.0.1:8000/api/menu/most-liked/'),
-          axios.get('http://127.0.0.1:8000/api/menu/')
+          axios.get('http://127.0.0.1:8000/api/menu/dishes/specials/'),
+          axios.get('http://127.0.0.1:8000/api/menu/dishes/most_liked/'),
+          axios.get('http://127.0.0.1:8000/api/menu/dishes/') // This is the correct endpoint for all dishes
         ]);
         setSpecials(specialsRes.data);
         setLiked(likedRes.data);

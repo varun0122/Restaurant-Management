@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import apiClient from '../api/axiosConfig';
 import styles from './AdminQRDownload.module.css';
-import { FiEye, FiDownload } from 'react-icons/fi'; // Import icons
+import { FiEye, FiDownload, FiPlusCircle } from 'react-icons/fi';
 
-// A new component for the full-screen preview modal
 const PreviewModal = ({ imageUrl, onClose }) => {
   if (!imageUrl) return null;
-
   return (
     <div className={styles.modalBackdrop} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -20,23 +18,43 @@ const PreviewModal = ({ imageUrl, onClose }) => {
 const AdminQRDownload = () => {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [previewImage, setPreviewImage] = useState(null); // State to manage the modal
+  const [previewImage, setPreviewImage] = useState(null);
+  
+  // --- NEW: State for adding a new table ---
+  const [newTableNumber, setNewTableNumber] = useState('');
+
+  const fetchTables = async () => {
+    try {
+      const response = await apiClient.get('/tables/');
+      setTables(response.data);
+    } catch (err) {
+      console.error('Failed to load table QR codes', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchTables = async () => {
-      try {
-        const response = await apiClient.get('/tables/');
-        setTables(response.data);
-      } catch (err) {
-        console.error('Failed to load table QR codes', err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchTables();
   }, []);
 
-  // This function forces the browser to download the file
+  // --- NEW: Handler to create a new table ---
+  const handleAddTable = async (e) => {
+    e.preventDefault();
+    if (!newTableNumber || isNaN(parseInt(newTableNumber))) {
+      alert('Please enter a valid table number.');
+      return;
+    }
+    try {
+      await apiClient.post('/tables/', { table_number: newTableNumber });
+      setNewTableNumber(''); // Clear the input
+      fetchTables(); // Refresh the list
+    } catch (err) {
+      alert(`Failed to add table: ${err.response?.data?.table_number || 'An error occurred.'}`);
+      console.error('Failed to add table', err);
+    }
+  };
+
   const handleDownload = (imageUrl, filename) => {
     fetch(imageUrl)
       .then(response => response.blob())
@@ -61,6 +79,25 @@ const AdminQRDownload = () => {
   return (
     <>
       <div className={styles.container}>
+        {/* --- NEW: Add Table Form --- */}
+        <div className={styles.addTableSection}>
+          <h4>Add New Table</h4>
+          <form onSubmit={handleAddTable} className={styles.addTableForm}>
+            <input
+              type="number"
+              value={newTableNumber}
+              onChange={(e) => setNewTableNumber(e.target.value)}
+              placeholder="Enter Table Number"
+              className={styles.addTableInput}
+            />
+            <button type="submit" className={styles.addButton}>
+              <FiPlusCircle /> Generate QR Code
+            </button>
+          </form>
+        </div>
+
+        <div className={styles.divider}></div>
+
         <h4>Download Table QR Codes</h4>
         <p>Preview the QR code or download it directly to your device.</p>
         <div className={styles.grid}>
@@ -71,7 +108,7 @@ const AdminQRDownload = () => {
                 src={table.qr_code_url}
                 alt={`QR Code for Table ${table.table_number}`}
                 className={styles.qrImage}
-                onClick={() => setPreviewImage(table.qr_code_url)} // Click image to preview
+                onClick={() => setPreviewImage(table.qr_code_url)}
               />
               <div className={styles.buttonGroup}>
                 <button 

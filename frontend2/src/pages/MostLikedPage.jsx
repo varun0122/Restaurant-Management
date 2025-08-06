@@ -5,7 +5,7 @@ const MostLikedPage = ({ onAddToCart }) => {
   const [dishes, setDishes] = useState([]);
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/menu/most-liked/')
+    axios.get('http://127.0.0.1:8000/api/menu/dishes/most_liked/')
       .then((res) => setDishes(res.data))
       .catch(() => alert('Failed to load most liked dishes'));
   }, []);

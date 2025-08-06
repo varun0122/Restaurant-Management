@@ -9,6 +9,8 @@ import BillingPage from './pages/BillingPage';
 import KitchenDashboard from './pages/KitchenDashboard';
 import AllOrdersPage from './pages/AllOrdersPage';
 import AdminQRDownload from './pages/AdminQRDownload';
+// --- IMPORT THE NEW PAGE ---
+import MenuManagementPage from './pages/MenuManagementPage';
 
 import './App.css';
 
@@ -40,6 +42,10 @@ function App() {
         <Route path="/orders" element={<AppLayout><AllOrdersPage /></AppLayout>} />
         <Route path="/qr-codes" element={<AppLayout><AdminQRDownload /></AppLayout>} />
         <Route path="/billing" element={<AppLayout><BillingPage /></AppLayout>} />
+        
+        {/* --- ADD THE ROUTE FOR THE NEW PAGE HERE --- */}
+        <Route path="/menu" element={<AppLayout><MenuManagementPage /></AppLayout>} />
+
       </Routes>
     </Router>
   );

@@ -8,7 +8,8 @@ const SpecialsPage = () => {
   useEffect(() => {
     const fetchSpecials = async () => {
       try {
-        const res = await axios.get('http://127.0.0.1:8000/api/menu/specials/');
+        // --- FIX: Updated the API URL to the correct endpoint ---
+        const res = await axios.get('http://127.0.0.1:8000/api/menu/dishes/specials/');
         setSpecials(res.data);
       } catch (error) {
         console.error("Failed to load specials", error);
