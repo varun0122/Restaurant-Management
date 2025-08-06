@@ -1,0 +1,39 @@
+.container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 1rem;
+  z-index: 1201;
+}
+
+.bar {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #28a745;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+  animation: slideUp 0.3s ease-out;
+  padding-bottom: 70px; /* protect content from bottom nav, adjust as needed */
+  position: relative;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100px); }
+  to { transform: translateY(0); }
+}
+
+.bar span {
+  font-weight: 600;
+}
+
+.link {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}

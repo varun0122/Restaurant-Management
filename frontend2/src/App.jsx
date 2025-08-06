@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from 'react-router-dom';
+import OrderStatusPage from './pages/OrderStatusPage';
+import FoodTypeFilter from './components/FoodTypeFilter';
+import Navbar from './components/Navbar';
+import Categories from './components/Categories';
 
-import CustomerLogin from './pages/CustomerLogin';
 import MenuPage from './pages/MenuPage';
 import CartPage from './pages/CartPage';
 import OrderHistory from './pages/OrderHistory';
-import BillPage from './pages/BillPage';
-import Navbar from './components/Navbar';
-import StaffLogin from './pages/StaffLogin';
-import StaffDashboard from './pages/StaffDashboard';
-import AdminSummary from './pages/AdminSummary';
-import AdminQRDownload from './pages/AdminQRDownload';
+import BillPage from './pages/BillPage'; 
 import Home from './pages/Home';
 import PaymentSuccess from './pages/PaymentSuccess';
 import Feedback from './pages/Feedback';
@@ -18,90 +22,134 @@ import SpecialsPage from './pages/SpecialsPage';
 import MostLikedPage from './pages/MostLikedPage';
 import Account from './pages/Account';
 
-// Route protection
-import {
-  CustomerProtectedRoute,
-  StaffProtectedRoute,
-  AdminProtectedRoute,
-} from './utils/ProtectedRoutes';
+import { CustomerProtectedRoute } from './utils/ProtectedRoutes';
+import { Toaster } from 'react-hot-toast';
 
-function App() {
+// =====================================================================================
+// APP LAYOUT: Main component with logic and shared layout
+// =====================================================================================
+const AppLayout = () => {
+  // State
   const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem('cart')) || []);
   const [customer, setCustomer] = useState(() => {
     const data = localStorage.getItem('customer');
     return data ? JSON.parse(data) : null;
   });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedFoodType, setSelectedFoodType] = useState('all');
 
+  const location = useLocation();
+  const showSearchAndCategories = ['/', '/menu'].includes(location.pathname);
+
+  // Add to cart logic
   const handleAddToCart = (dish) => {
     const existing = cart.find(item => item.id === dish.id);
-    let updatedCart;
-    if (existing) {
-      updatedCart = cart.map(item =>
-        item.id === dish.id ? { ...item, quantity: item.quantity + dish.quantity } : item
-      );
-    } else {
-      updatedCart = [...cart, { ...dish }];
-    }
+    const updatedCart = existing
+      ? cart.map(item => item.id === dish.id ? { ...item, quantity: item.quantity + 1 } : item)
+      : [...cart, { ...dish, quantity: 1 }];
+
     setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
   };
 
+  // Login handler
   const handleLogin = (user) => {
     setCustomer(user);
   };
 
   return (
-    <Router>
-      <Navbar customer={customer} />
-      <Routes>
+    <>
+      <Navbar
+        customer={customer}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        showSearch={showSearchAndCategories}
+      />
 
-        {/* Public Routes */}
+      {showSearchAndCategories && (
+        <>
+          <Categories
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+          />
+          <FoodTypeFilter
+            selectedFoodType={selectedFoodType}
+            setSelectedFoodType={setSelectedFoodType}
+          />
+        </>
+      )}
+
+      <Toaster position="top-right" />
+
+      <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<CustomerLogin onLogin={handleLogin} />} />
-        <Route path="/menu" element={<MenuPage cart={cart} setCart={setCart} />} />
-        <Route path="/cart" element={<CartPage cart={cart} setCart={setCart} onOrderPlaced={() => setCart([])} customer={customer} />} />
+
+        <Route
+          path="/menu"
+          element={
+            <MenuPage
+              cart={cart}
+              setCart={setCart}
+              searchTerm={searchTerm}
+              selectedCategory={selectedCategory}
+              selectedFoodType={selectedFoodType}
+            />
+          }
+        />
+        <Route path="/order-status/:orderId" element={<CustomerProtectedRoute><OrderStatusPage /></CustomerProtectedRoute>} />
+        <Route
+          path="/cart"
+          element={
+            <CartPage
+              cart={cart}
+              setCart={setCart}
+              onOrderPlaced={() => setCart([])}
+              onLogin={handleLogin}
+            />
+          }
+        />
+
         <Route path="/specials" element={<SpecialsPage />} />
         <Route path="/most-liked" element={<MostLikedPage />} />
         <Route path="/success" element={<PaymentSuccess />} />
         <Route path="/feedback" element={<Feedback />} />
 
-        {/* Customer Protected Routes */}
-        <Route path="/account" element={
-          <CustomerProtectedRoute><Account /></CustomerProtectedRoute>
-        } />
-        <Route path="/history" element={
-          <CustomerProtectedRoute><OrderHistory onAddToCart={handleAddToCart} /></CustomerProtectedRoute>
-        } />
-        <Route path="/bill" element={
-          <CustomerProtectedRoute><BillPage cart={cart} /></CustomerProtectedRoute>
-        } />
+        <Route
+          path="/account"
+          element={
+            <CustomerProtectedRoute>
+              <Account />
+            </CustomerProtectedRoute>
+          }
+        />
 
-        {/* Staff Login */}
-        <Route path="/staff/login" element={
-          <StaffLogin onLogin={(user) => {
-            localStorage.setItem('staff', JSON.stringify(user));
-            window.location.href = "/staff/dashboard";
-          }} />
-        } />
+        <Route
+          path="/history"
+          element={
+            <CustomerProtectedRoute>
+              <OrderHistory onAddToCart={handleAddToCart} />
+            </CustomerProtectedRoute>
+          }
+        />
 
-        {/* Staff Protected Routes */}
-        <Route path="/staff/dashboard" element={
-          <StaffProtectedRoute><StaffDashboard /></StaffProtectedRoute>
-        } />
+       <Route path="/bill/:billId" element={<CustomerProtectedRoute><BillPage /></CustomerProtectedRoute>} />
 
-        {/* Admin Protected Routes */}
-        <Route path="/staff/summary" element={
-          <AdminProtectedRoute><AdminSummary /></AdminProtectedRoute>
-        } />
-        <Route path="/admin/qr-codes" element={
-          <AdminProtectedRoute><AdminQRDownload /></AdminProtectedRoute>
-        } />
-
-        {/* Fallback */}
         <Route path="*" element={<Navigate to="/menu" />} />
       </Routes>
+    </>
+  );
+};
+
+// =====================================================================================
+// MAIN APP COMPONENT
+// =====================================================================================
+const App = () => {
+  return (
+    <Router>
+      <AppLayout />
     </Router>
   );
-}
+};
 
 export default App;

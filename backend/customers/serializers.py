@@ -10,6 +10,14 @@ class VerifyOTPSerializer(serializers.Serializer):
     table_number = serializers.IntegerField()
 
 class CustomerSerializer(serializers.ModelSerializer):
+    """
+    Serializes customer data.
+    This version is corrected to only include fields that exist on the Customer model.
+    """
     class Meta:
         model = Customer
-        fields = ['id', 'phone_number', 'table_number']
+        # --- THE FIX IS HERE ---
+        # We have removed 'table_number' from this list because it is no longer
+        # part of the Customer model.
+        fields = ['id', 'phone_number', 'last_login']
+

@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Dish
-from .serializers import DishSerializer
+from .models import Dish,Category
+from .serializers import DishSerializer,CategorySerializer
 
 @api_view(['GET'])
 def menu_list(request):
@@ -19,7 +19,16 @@ def todays_special(request):
 
 @api_view(['GET'])
 def most_liked_list(request):
-    liked = Dish.objects.order_by('-like_count')[:10]  # ✅ CORRECT
+    liked = Dish.objects.order_by('-like_count')[:6]  # ✅ CORRECT
     serializer = DishSerializer(liked, many=True, context={'request': request})
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def category_list(request):
+    """
+    This view returns a list of all available categories.
+    """
+    categories = Category.objects.all()
+    serializer = CategorySerializer(categories, many=True)
     return Response(serializer.data)
 

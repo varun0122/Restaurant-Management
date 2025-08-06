@@ -1,15 +1,18 @@
+# menu/serializers.py
 from rest_framework import serializers
 from .models import Category, Dish
 
 class CategorySerializer(serializers.ModelSerializer):
+    # ... no changes here
     class Meta:
         model = Category
         fields = ['id', 'name']
 
 class DishSerializer(serializers.ModelSerializer):
     image_url = serializers.ReadOnlyField()
-    likes = serializers.ReadOnlyField()  # ✅ Add this only if `@property def likes` exists
-
+    category = CategorySerializer(read_only=True)
+    likes = serializers.ReadOnlyField() 
     class Meta:
         model = Dish
-        fields = ['id', 'name', 'description', 'price', 'image_url', 'likes', 'is_special']
+        # --- Add 'food_type' to this list ---
+        fields = ['id', 'name', 'description', 'price', 'image_url', 'is_special', 'likes','category', 'food_type']

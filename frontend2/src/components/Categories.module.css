@@ -1,0 +1,44 @@
+.container {
+  padding: 0 1.5rem 1rem;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.scrollWrapper {
+  display: flex;
+  overflow-x: auto;
+  padding-bottom: 10px; /* for scrollbar spacing if visible */
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none;  /* For Internet Explorer and Edge */
+}
+
+/* For Chrome, Safari and Opera */
+.scrollWrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.categoryButton {
+  flex-shrink: 0; /* Prevents buttons from shrinking */
+  padding: 0.5rem 1.25rem;
+  margin-right: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #555;
+  background-color: #f0f0f0;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  white-space: nowrap; /* Ensures text doesn't wrap */
+}
+
+.categoryButton:hover {
+  background-color: #e0e0e0;
+}
+
+.categoryButton.active {
+  background-color: #007bff; /* A nice blue for active state */
+  color: #ffffff;
+  border-color: #0056b3;
+  font-weight: 600;
+}

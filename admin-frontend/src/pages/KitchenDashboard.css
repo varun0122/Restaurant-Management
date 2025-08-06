@@ -1,0 +1,119 @@
+.kitchen-dashboard h4 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.order-grid {
+  display: grid;
+  /* This creates a responsive grid that adjusts to screen size */
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.order-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease;
+}
+
+.order-card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.status-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #fff;
+}
+.status-pending { background-color: #ffc107; color: #333; }
+.status-preparing { background-color: #17a2b8; }
+.status-ready { background-color: #28a745; }
+.status-served { background-color: #6c757d; }
+
+
+.item-list {
+  list-style: none;
+  padding: 1rem;
+  margin: 0;
+  flex-grow: 1;
+  cursor: pointer;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+.item:last-child {
+  border-bottom: none;
+}
+.item-more {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    padding-top: 0.5rem;
+}
+
+.card-footer {
+  padding: 1rem;
+  background-color: #f9f9f9;
+  text-align: right;
+  border-top: 1px solid #eee;
+}
+
+/* --- Modal Styles --- */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.item-list-modal {
+    list-style: none;
+    padding: 0;
+    margin-top: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.item-modal {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem;
+    border-bottom: 1px solid #eee;
+}
+.item-modal:nth-child(even) {
+    background-color: #f9f9f9;
+}

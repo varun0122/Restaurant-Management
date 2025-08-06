@@ -1,0 +1,42 @@
+/* admin-frontend/src/App.css */
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background-color: #f4f7f6;
+}
+
+.app-layout {
+  display: flex;
+}
+
+.main-content {
+  flex-grow: 1;
+  margin-left: 250px; /* Same as sidebar width */
+  padding: 1rem;
+  transition: margin-left 0.3s ease;
+}
+
+.hamburger-button {
+  display: none; /* Hidden on desktop */
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1000;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* --- Mobile Styles --- */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+  .hamburger-button {
+    display: block;
+  }
+}

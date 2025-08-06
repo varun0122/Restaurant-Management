@@ -3,4 +3,5 @@ from .models import Table
 
 @admin.register(Table)
 class TableAdmin(admin.ModelAdmin):
-    list_display = ['number', 'qr_image']
+    # These are the corrected field names
+    list_display = ('table_number', 'qr_code')
