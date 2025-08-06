@@ -195,30 +195,34 @@ def kitchen_display_orders(request):
     serializer = OrderSerializer(orders, many=True)
     return Response(serializer.data)
 
+
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def update_order_status(request, order_id):
     """
-    Allows staff to update the status of an order.
-    Now correctly handles bill creation with a case-insensitive check.
+    Allows staff to update the status of an order and handles billing logic.
+    This version now prevents updating orders from previous days.
     """
     try:
         order = Order.objects.get(id=order_id)
+        
+        # --- THE FIX IS HERE ---
+        # 1. Check if the order is from a previous day.
         if order.created_at.date() < date.today():
             return Response(
                 {'error': 'Cannot update an order from a previous day.'}, 
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_403_FORBIDDEN # 403 Forbidden is the correct status code
             )
-        new_status = request.data.get('status')
 
+        new_status = request.data.get('status')
+        
         valid_statuses = [s[0] for s in ORDER_STATUS]
         if new_status not in valid_statuses:
             return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
         
         order.status = new_status
         
-        # --- FIX: Make the status check case-insensitive ---
-        # This ensures the billing logic runs even if the frontend sends "served" or "SERVED".
+        # 2. Make the status check case-insensitive for robustness
         if new_status and new_status.lower() == 'served':
             try:
                 table = Table.objects.get(table_number=order.table_number)

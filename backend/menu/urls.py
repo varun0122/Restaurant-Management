@@ -1,9 +1,13 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from . import views
 
+# Create a router and register our viewsets with it.
+router = DefaultRouter()
+router.register(r'categories', views.CategoryViewSet, basename='category')
+router.register(r'dishes', views.DishViewSet, basename='dish')
+
+# The router now automatically creates all URLs, including the custom actions.
 urlpatterns = [
-    path('', views.menu_list),
-    path('specials/', views.todays_special),
-    path('most-liked/', views.most_liked_list),
-    path('categories/', views.category_list, name='category-list'),
+    path('', include(router.urls)),
 ]

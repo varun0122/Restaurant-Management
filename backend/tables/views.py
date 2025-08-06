@@ -3,18 +3,14 @@ from rest_framework.permissions import IsAdminUser
 from .models import Table
 from .serializers import TableSerializer
 
-class TableViewSet(viewsets.ReadOnlyModelViewSet):
+# --- FIX: Changed from ReadOnlyModelViewSet to ModelViewSet ---
+# This enables create, update, and delete actions (POST, PUT, DELETE).
+class TableViewSet(viewsets.ModelViewSet):
     """
-    A viewset for viewing table instances and their QR codes.
+    API endpoint that allows tables to be viewed or created.
+    QR codes are automatically generated when a new table is created.
     """
-    permission_classes = [IsAdminUser]
-    queryset = Table.objects.all()
+    queryset = Table.objects.all().order_by('table_number')
     serializer_class = TableSerializer
+    permission_classes = [IsAdminUser]
 
-    # --- THIS IS THE FIX ---
-    # This method passes the request context to the serializer,
-    # which is necessary for the SerializerMethodField to build the full URL.
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update({"request": self.request})
-        return context
