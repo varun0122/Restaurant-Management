@@ -35,6 +35,7 @@ const Sidebar = ({ isOpen, setIsOpen}) => {
               <NavLink to="/orders" className={({ isActive }) => isActive ? styles.active : ''}>All Orders</NavLink>
               <NavLink to="/billing" className={({ isActive }) => isActive ? styles.active : ''}>Billing</NavLink>
               <NavLink to="/qr-codes" className={({ isActive }) => isActive ? styles.active : ''}>QR Codes</NavLink>
+              <NavLink to="/staff" className={({ isActive }) => isActive ? styles.active : ''}>Staff Management</NavLink>
             </>
           )}
         </nav>

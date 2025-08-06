@@ -1,112 +1,191 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import apiClient from '../api/axiosConfig';
-import './KitchenDashboard.css'; // Using a regular CSS file for styling
+import useWebSocket, { ReadyState } from 'react-use-websocket';
+import './KitchenDashboard.css';
 
-// A component for the Order Details Modal
+// Modal to display full order details
 const OrderDetailModal = ({ order, onClose }) => {
-    if (!order) return null;
+  if (!order) return null;
+  // Support both order.customer?.table_number and order.table_number field
+  const tableNumber = order.table_number || order.customer?.table_number || 'N/A';
+  const customerPhone = order.customer?.phone_number || 'N/A';
 
-    return (
-        <div className="modal-backdrop" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <h3>Order #{order.id} Details</h3>
-                <p><strong>Table:</strong> {order.customer?.table_number || 'N/A'}</p>
-                <p><strong>Customer:</strong> {order.customer?.phone_number || 'N/A'}</p>
-                <ul className="item-list-modal">
-                    {order.items.map(item => (
-                        <li key={item.id} className="item-modal">
-                            <span>{item.dish.name}</span>
-                            <strong>× {item.quantity}</strong>
-                        </li>
-                    ))}
-                </ul>
-                <button onClick={onClose} className="btn btn-secondary mt-3">Close</button>
-            </div>
-        </div>
-    );
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <h3>Order #{order.id} Details</h3>
+        <p><strong>Table:</strong> {tableNumber}</p>
+        <p><strong>Customer Phone:</strong> {customerPhone}</p>
+        <ul className="item-list-modal">
+          {order.items.map(item => (
+            <li key={item.id} className="item-modal">
+              <span>{item.dish.name}</span>
+              <strong>× {item.quantity}</strong>
+            </li>
+          ))}
+        </ul>
+        <button onClick={onClose} className="btn btn-secondary mt-3">Close</button>
+      </div>
+    </div>
+  );
 };
 
-
 const KitchenDashboard = () => {
-    const [orders, setOrders] = useState([]);
-    const [selectedOrder, setSelectedOrder] = useState(null); // For the modal
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [wsConnected, setWsConnected] = useState(true); // For fallback
 
-    const fetchOrders = async () => {
-        try {
-            // This endpoint should show all active orders (Pending, Preparing, Ready)
-            const res = await apiClient.get('/orders/kitchen-display/');
-            setOrders(res.data);
-        } catch (err) {
-            console.error('Failed to fetch orders', err);
-        }
-    };
+  const socketUrl = 'ws://127.0.0.1:8000/ws/orders/';
+  const { lastMessage, ReadyState } = useWebSocket(socketUrl, {
+    onOpen: () => setWsConnected(true),
+    onClose: () => setWsConnected(false),
+    shouldReconnect: () => true
+  });
 
-    const handleStatusUpdate = async (orderId, newStatus) => {
-        try {
-            await apiClient.patch(`/orders/${orderId}/update-status/`, { status: newStatus });
-            fetchOrders(); 
-        } catch (err) {
-            console.error('Failed to update status', err);
-            alert('Failed to update order status.');
-        }
-    };
+  // Fallback polling if WebSocket is not connected
+  const fetchOrders = useCallback(async () => {
+    try {
+      const response = await apiClient.get('/orders/kitchen-display/');
+      setOrders(response.data);
+      setError('');
+    } catch (err) {
+      setError('Failed to load orders.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-    useEffect(() => {
-        fetchOrders();
-        const interval = setInterval(fetchOrders, 10000); // Poll every 10s
-        return () => clearInterval(interval);
-    }, []);
+  useEffect(() => {
+    fetchOrders();
+    let interval = null;
+    if (!wsConnected) {
+      interval = setInterval(fetchOrders, 10000); // Poll every 10s if WS disconnected
+    }
+    return () => interval && clearInterval(interval);
+  }, [wsConnected, fetchOrders]);
 
-    // This function determines which button to show based on the order's current status
-    const renderAction = (order) => {
-        switch(order.status) {
-            case 'Pending':
-                return <button className="btn btn-primary" onClick={() => handleStatusUpdate(order.id, 'Preparing')}>Start Preparing</button>;
-            case 'Preparing':
-                return <button className="btn btn-success" onClick={() => handleStatusUpdate(order.id, 'Ready')}>Mark as Ready</button>;
-            case 'Ready':
-                 return <button className="btn btn-info" onClick={() => handleStatusUpdate(order.id, 'Served')}>Mark as Served</button>;
-            default:
-                // If an order is 'Served', it will be filtered out by the backend on the next fetch,
-                // so no button is needed.
-                return null;
-        }
-    };
+  // Initial fetch when mounts
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  // Handle incoming WebSocket messages
+  useEffect(() => {
+    if (lastMessage !== null) {
+      const data = JSON.parse(lastMessage.data);
+      if (data.type === 'order_update') {
+        const updatedOrder = data.order;
+        setOrders(prevOrders => {
+          const existingOrderIndex = prevOrders.findIndex(order => order.id === updatedOrder.id);
+          let newOrders = [...prevOrders];
+          if (['Pending', 'Preparing', 'Ready'].includes(updatedOrder.status)) {
+            if (existingOrderIndex !== -1) {
+              newOrders[existingOrderIndex] = updatedOrder;
+            } else {
+              newOrders.push(updatedOrder);
+            }
+          } else {
+            if (existingOrderIndex !== -1) {
+              newOrders.splice(existingOrderIndex, 1);
+            }
+          }
+          return newOrders.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        });
+      }
+    }
+  }, [lastMessage]);
+
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      await apiClient.patch(`/orders/${orderId}/update-status/`, { status: newStatus });
+      // WebSocket will sync state; fallback if not connected
+      if (!wsConnected) fetchOrders();
+    } catch (err) {
+      alert('Failed to update order status.');
+      console.error(err);
+    }
+  };
+
+  // Group orders by status
+  const pendingOrders = orders.filter(o => o.status === 'Pending');
+  const preparingOrders = orders.filter(o => o.status === 'Preparing');
+  const readyOrders = orders.filter(o => o.status === 'Ready');
+
+  const renderBadge = status => (
+    <span className={`status-badge status-${status.toLowerCase()}`}>{status}</span>
+  );
+
+  const renderOrderCard = (order) => {
+    const tableNumber = order.table_number || order.customer?.table_number || 'N/A';
+    // "and N more" logic:
+    const itemsToShow = order.items.slice(0, 3);
+    const moreCount = order.items.length - 3;
 
     return (
-        <div className="kitchen-dashboard">
-            <h4>🍳 Kitchen & Staff Queue</h4>
-            {orders.length === 0 ? (
-                <p>No active orders found.</p>
-            ) : (
-                <div className="order-grid">
-                    {orders.map(order => (
-                        <div key={order.id} className="order-card">
-                            <div className="card-header" onClick={() => setSelectedOrder(order)}>
-                                <strong>Table #{order.table_number || 'N/A'}</strong>
-                                <span className={`status-badge status-${order.status.toLowerCase()}`}>{order.status}</span>
-                            </div>
-                            <ul className="item-list" onClick={() => setSelectedOrder(order)}>
-                                {order.items.slice(0, 3).map(item => ( // Show first 3 items for brevity
-                                    <li key={item.id} className="item">
-                                        <span>{item.dish.name}</span>
-                                        <strong>× {item.quantity}</strong>
-                                    </li>
-                                ))}
-                                {order.items.length > 3 && (
-                                    <li className="item-more">...and {order.items.length - 3} more</li>
-                                )}
-                            </ul>
-                            <div className="card-footer">
-                                {renderAction(order)}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-            <OrderDetailModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />
+      <div key={order.id} className={`order-card ${order.status === 'Ready' ? 'ready' : ''}`} onClick={() => setSelectedOrder(order)}>
+        <div className="card-header">
+          <strong>Table #{tableNumber}</strong>
+          {renderBadge(order.status)}
         </div>
+        <ul className="item-list">
+          {itemsToShow.map(item => (
+            <li key={item.id} className="item">
+              <span>{item.dish.name}</span>
+              <strong>× {item.quantity}</strong>
+            </li>
+          ))}
+          {moreCount > 0 && (
+            <li className="item-more">...and {moreCount} more</li>
+          )}
+        </ul>
+        <div className="card-footer">
+          {order.status === 'Pending' &&
+            <button className="btn btn-primary" onClick={e => { e.stopPropagation(); updateOrderStatus(order.id, 'Preparing'); }}>
+              Start Preparing
+            </button>}
+          {order.status === 'Preparing' &&
+            <button className="btn btn-success" onClick={e => { e.stopPropagation(); updateOrderStatus(order.id, 'Ready'); }}>
+              Mark as Ready
+            </button>}
+          {order.status === 'Ready' &&
+            <button className="btn btn-info" onClick={e => { e.stopPropagation(); updateOrderStatus(order.id, 'Served'); }}>
+              Mark as Served
+            </button>}
+        </div>
+      </div>
     );
+  };
+
+  if (loading) {
+    return <div className="kitchen-dashboard"><h2>Loading Kitchen Orders...</h2></div>;
+  }
+
+  if (error) {
+    return <div className="kitchen-dashboard error"><h2>{error}</h2></div>;
+  }
+
+  return (
+    <div className="kitchen-dashboard">
+      <h4>🍳 Kitchen & Staff Queue</h4>
+      {!wsConnected && <div className="ws-fallback">WebSocket disconnected. Running in fallback mode.</div>}
+      <div className="order-status-grid">
+        <div className="status-column">
+          <h3>Pending ({pendingOrders.length})</h3>
+          {pendingOrders.length === 0 ? <p>No pending orders.</p> : pendingOrders.map(renderOrderCard)}
+        </div>
+        <div className="status-column">
+          <h3>Preparing ({preparingOrders.length})</h3>
+          {preparingOrders.length === 0 ? <p>No preparing orders.</p> : preparingOrders.map(renderOrderCard)}
+        </div>
+        <div className="status-column">
+          <h3>Ready ({readyOrders.length})</h3>
+          {readyOrders.length === 0 ? <p>No ready orders.</p> : readyOrders.map(renderOrderCard)}
+        </div>
+      </div>
+      <OrderDetailModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />
+    </div>
+  );
 };
 
 export default KitchenDashboard;

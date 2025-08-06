@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/staff/', include('staff.urls')),
     path('api/tables/', include('tables.urls')),
     path('api/billing/', include('billing.urls')),
+    path('api/accounts/', include('accounts.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

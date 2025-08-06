@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'channels', 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,7 +48,8 @@ INSTALLED_APPS = [
     'staff',
     'tables',
     'import_export',
-    'billing'
+    'billing',
+    'accounts'
 ]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -65,6 +67,13 @@ MIDDLEWARE = [
     
 
 ]
+ASGI_APPLICATION = 'backend.asgi.application'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 ROOT_URLCONF = 'backend.urls'
 CORS_ALLOW_ALL_ORIGINS = True

@@ -11,7 +11,8 @@ import AllOrdersPage from './pages/AllOrdersPage';
 import AdminQRDownload from './pages/AdminQRDownload';
 // --- IMPORT THE NEW PAGE ---
 import MenuManagementPage from './pages/MenuManagementPage';
-
+import StaffManagementPage from './pages/StaffManagementPage';
+import StaffFormModal from './components/StaffFormModal';
 import './App.css';
 
 // This component wraps our pages with the sidebar
@@ -45,6 +46,7 @@ function App() {
         
         {/* --- ADD THE ROUTE FOR THE NEW PAGE HERE --- */}
         <Route path="/menu" element={<AppLayout><MenuManagementPage /></AppLayout>} />
+        <Route path="/staff" element={<AppLayout><StaffManagementPage /></AppLayout>} />
 
       </Routes>
     </Router>
