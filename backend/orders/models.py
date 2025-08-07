@@ -17,7 +17,7 @@ class Order(models.Model):
     table_number = models.PositiveIntegerField()
     bill = models.ForeignKey(
         Bill, 
-        on_delete=models.SET_NULL, 
+        on_delete=models.CASCADE,
         related_name='orders', # <-- Add this line
         null=True, 
         blank=True

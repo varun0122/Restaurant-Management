@@ -90,3 +90,44 @@
   border-radius: 4px;
   font-weight: 500;
 }
+
+.discountInputSection {
+  padding: 1rem 1.5rem;
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.discountInputSection input {
+  flex-grow: 1;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.discountInputSection button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background-color: #34495e;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.specialDiscountButton {
+    width: 100%;
+    padding: 0.75rem;
+    background: none;
+    border: 1px solid #3498db;
+    color: #3498db;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 1rem;
+}
+
+.pendingMessage {
+    text-align: center;
+    color: #e67e22;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}

@@ -2,7 +2,13 @@
 
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
-
+from decimal import Decimal
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            # Convert Decimal to a string to ensure it's JSON serializable
+            return str(obj)
+        return super(DecimalEncoder, self).default(obj)
 class OrderConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         print("OrderConsumer.connect called!")
@@ -43,4 +49,4 @@ class OrderConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'order_update',
             'order': order_data
-        }))
+        }, cls=DecimalEncoder)) 

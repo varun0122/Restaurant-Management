@@ -1,126 +1,216 @@
-.backdrop {
+/* BillModal.module.css */
+.modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000; /* High z-index to appear over everything */
+  z-index: 3000;
   padding: 1rem;
 }
 
-.modal {
-  background: white;
-  border-radius: 8px;
-  width: 100%;
-  max-width: 450px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  animation: fadeIn 0.3s ease-out;
+.modalContent {
   position: relative;
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 450px;
+  width: 100%;
   max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
 .closeButton {
   position: absolute;
   top: 10px;
-  right: 10px;
-  background: #eee;
+  right: 15px;
+  background: none;
   border: none;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  font-size: 1.5rem;
+  font-size: 2rem;
   cursor: pointer;
-  z-index: 10;
+  color: #aaa;
 }
 
-.modal h3 {
-  text-align: center;
-  padding: 1.5rem;
-  margin: 0;
-  background-color: #f9f9f9;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  border-bottom: 1px solid #eee;
+.modalContent h3 {
+    margin-top: 0;
+    text-align: center;
+    font-size: 1.5rem;
 }
 
 .billId {
-  text-align: center;
-  color: #777;
-  font-size: 0.9rem;
-  padding: 0.5rem 0;
-}
-
-.itemsSection, .totalsSection, .footer {
-  padding: 1rem 1.5rem;
+    text-align: center;
+    color: #888;
+    margin-bottom: 1.5rem;
 }
 
 .itemsSection {
-  overflow-y: auto; /* Make item list scrollable if it's long */
+    margin-bottom: 1.5rem;
 }
 
 .itemsSection h4 {
-  margin-top: 0;
-  margin-bottom: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 .itemList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 .itemList li {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #f5f5f5;
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
 }
 
 .totalsSection {
-  border-top: 1px solid #eee;
-  margin-top: auto; /* Pushes this section to the bottom */
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
 }
 
 .totalRow {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    font-size: 1rem;
 }
 
 .grandTotal {
-  font-size: 1.3rem;
-  margin-top: 0.5rem;
-  padding-top: 1rem;
-  border-top: 2px solid #333;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+}
+
+.totalsSection .discount {
+  color: #27ae60;
+}
+
+.discountContainer {
+    padding: 1.5rem 0;
+    border-top: 1px solid #eee;
+}
+
+.offersHeader {
+    background: none;
+    border: none;
+    padding: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #3498db;
+    margin-bottom: 1rem;
+}
+
+.offersList {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+    font-size: 0.9rem;
+}
+
+.offersList.expanded {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+
+.offersList ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 0.5rem;
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+}
+
+.offersList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    color: #555;
+}
+
+.offersList li span {
+    font-style: italic;
+    color: #e67e22;
+}
+
+.offerApplyButton {
+    padding: 0.25rem 0.75rem;
+    border: 1px solid #3498db;
+    background: transparent;
+    color: #3498db;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.discountInputSection {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.discountInputSection input {
+  flex-grow: 1;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.discountInputSection button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background-color: #34495e;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.discountApplied, .pendingMessage {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 500;
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.discountApplied {
+    color: #27ae60;
+    background-color: #e9f7ef;
+}
+
+.pendingMessage {
+    color: #e67e22;
+    background-color: #fdf3e6;
+}
+
+.removeDiscountButton {
+    background: none;
+    border: 1px solid #e74c3c;
+    color: #e74c3c;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .footer {
-  text-align: center;
-  background-color: #f9f9f9;
-  border-top: 1px solid #eee;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-}
-
-.footer p {
-  margin: 0;
-  font-weight: 600;
-  color: #555;
-}
-
-.error {
-  color: #dc3545;
-  font-weight: 600;
-  text-align: center;
+    padding-top: 1.5rem;
+    text-align: center;
+    border-top: 1px solid #eee;
 }

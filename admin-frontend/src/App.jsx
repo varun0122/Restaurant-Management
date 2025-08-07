@@ -16,6 +16,7 @@ import StaffFormModal from './components/StaffFormModal';
 import InventoryPage from './pages/InventoryPage';
 import POSPage from './pages/POSPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import DiscountsPage from './pages/DiscountsPage';
 import './App.css';
 // This component wraps our pages with the sidebar
 const AppLayout = ({ children }) => {
@@ -51,6 +52,7 @@ function App() {
         <Route path="/menu" element={<AppLayout><ProtectedRoute><MenuManagementPage /></ProtectedRoute></AppLayout>} />
         <Route path="/staff" element={<AppLayout><ProtectedRoute><StaffManagementPage /></ProtectedRoute></AppLayout>} />
         <Route path="/inventory" element={<AppLayout><ProtectedRoute><InventoryPage /></ProtectedRoute></AppLayout>} />
+        <Route path="/discounts" element={<AppLayout><ProtectedRoute><DiscountsPage /></ProtectedRoute></AppLayout>} />
       </Routes>
     </Router>
   );

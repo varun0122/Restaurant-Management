@@ -48,9 +48,11 @@ INSTALLED_APPS = [
     'staff',
     'tables',
     'import_export',
+    'discounts',
     'billing',
     'accounts',
     'inventory',
+    
 ]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -77,8 +79,11 @@ CHANNEL_LAYERS = {
 }
 
 ROOT_URLCONF = 'backend.urls'
-CORS_ALLOW_ALL_ORIGINS = True
-
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5174",      # Your admin frontend
+    "http://localhost:5173",      # Your customer frontend
+    "https://your-live-website.com", # Your future production URL
+]
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
