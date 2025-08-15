@@ -33,12 +33,12 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess, tableNumber }) => {
     try {
       await axios.post('http://127.0.0.1:8000/api/customers/send-otp/', {
         phone_number: phone,
-        otp,
       });
       setStep(2);
       alert('OTP sent! (Check your backend terminal for the OTP during development)');
     } catch (err) {
-      setError('Failed to send OTP. Please try again.',err);
+      setError('Failed to send OTP. Please try again.');
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -52,22 +52,22 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess, tableNumber }) => {
     setError('');
     setLoading(true);
     try {
-      // --- THE FIX IS HERE ---
-      // The table_number is no longer sent during verification.
-      // It is only handled when the order is placed.
       const res = await axios.post('http://127.0.0.1:8000/api/customers/verify-otp/', {
         phone_number: phone,
-        otp,
+        otp: otp,
       });
-      // Pass the logged-in customer data back to the parent component
+      
       const { access, refresh, customer } = res.data;
       localStorage.setItem('customer_access_token', access);
       localStorage.setItem('customer_refresh_token', refresh);
       
-      // Pass the customer data back to the parent component
+      // --- FIX: Add the login timestamp ---
+      localStorage.setItem('customer_login_timestamp', Date.now());
+      
       onLoginSuccess(customer);
     } catch (err) {
-      setError('Invalid OTP. Please try again.',err);
+      setError('Invalid OTP. Please try again.');
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,6 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess, tableNumber }) => {
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <h3>Customer Login</h3>
-        {/* Display the table number for context */}
         <p>Login to place your order for Table {tableNumber}.</p>
         {error && <p className={styles.error}>{error}</p>}
         
@@ -110,7 +109,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess, tableNumber }) => {
           </button>
         ) : (
           <button className={styles.button} onClick={verifyOTP} disabled={loading}>
-            {loading ? 'Verifying...' : 'Verify & Place Order'}
+            {loading ? 'Verifying...' : 'Verify & Login'}
           </button>
         )}
       </div>

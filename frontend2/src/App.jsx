@@ -10,7 +10,7 @@ import OrderStatusPage from './pages/OrderStatusPage';
 import FoodTypeFilter from './components/FoodTypeFilter';
 import Navbar from './components/Navbar';
 import Categories from './components/Categories';
-
+import HomePage from './pages/HomePage';
 import MenuPage from './pages/MenuPage';
 import CartPage from './pages/CartPage';
 import OrderHistory from './pages/OrderHistory';
@@ -83,7 +83,7 @@ const AppLayout = () => {
       <Toaster position="top-right" />
 
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<HomePage />} />
 
         <Route
           path="/menu"

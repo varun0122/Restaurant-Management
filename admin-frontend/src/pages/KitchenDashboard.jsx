@@ -3,10 +3,37 @@ import apiClient from '../api/axiosConfig';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import './KitchenDashboard.css';
 
+// --- Reusable "Time Ago" component ---
+const TimeAgo = ({ timestamp }) => {
+    const [timeAgo, setTimeAgo] = useState('');
+
+    useEffect(() => {
+        const calculateTimeAgo = () => {
+            const now = new Date();
+            const orderTime = new Date(timestamp);
+            const seconds = Math.floor((now - orderTime) / 1000);
+            
+            let interval = seconds / 3600;
+            if (interval > 1) return `${Math.floor(interval)} hours ago`;
+            interval = seconds / 60;
+            if (interval > 1) return `${Math.floor(interval)} mins ago`;
+            return `${Math.floor(seconds)} secs ago`;
+        };
+
+        setTimeAgo(calculateTimeAgo());
+        // --- FIX: Update the timer to run more frequently for a real-time feel ---
+        const timer = setInterval(() => setTimeAgo(calculateTimeAgo()), 5000); // Update every 5 seconds
+
+        return () => clearInterval(timer); // Cleanup on unmount
+    }, [timestamp]);
+
+    return <span className="time-ago">{timeAgo}</span>;
+};
+
+
 // Modal to display full order details
 const OrderDetailModal = ({ order, onClose }) => {
   if (!order) return null;
-  // Support both order.customer?.table_number and order.table_number field
   const tableNumber = order.table_number || order.customer?.table_number || 'N/A';
   const customerPhone = order.customer?.phone_number || 'N/A';
 
@@ -35,16 +62,15 @@ const KitchenDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [wsConnected, setWsConnected] = useState(true); // For fallback
+  const [wsConnected, setWsConnected] = useState(true);
 
   const socketUrl = 'ws://127.0.0.1:8000/ws/orders/';
-  const { lastMessage, ReadyState } = useWebSocket(socketUrl, {
+  const { lastMessage } = useWebSocket(socketUrl, {
     onOpen: () => setWsConnected(true),
     onClose: () => setWsConnected(false),
     shouldReconnect: () => true
   });
 
-  // Fallback polling if WebSocket is not connected
   const fetchOrders = useCallback(async () => {
     try {
       const response = await apiClient.get('/orders/kitchen-display/');
@@ -59,18 +85,14 @@ const KitchenDashboard = () => {
   }, []);
 
   useEffect(() => {
-    fetchOrders();
+    fetchOrders(); // Initial fetch
     let interval = null;
     if (!wsConnected) {
-      interval = setInterval(fetchOrders, 10000); // Poll every 10s if WS disconnected
+      interval = setInterval(fetchOrders, 10000); // Fallback polling
     }
     return () => interval && clearInterval(interval);
   }, [wsConnected, fetchOrders]);
 
-  // Initial fetch when mounts
-  useEffect(() => { fetchOrders(); }, [fetchOrders]);
-
-  // Handle incoming WebSocket messages
   useEffect(() => {
     if (lastMessage !== null) {
       const data = JSON.parse(lastMessage.data);
@@ -99,7 +121,6 @@ const KitchenDashboard = () => {
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
       await apiClient.patch(`/orders/${orderId}/update-status/`, { status: newStatus });
-      // WebSocket will sync state; fallback if not connected
       if (!wsConnected) fetchOrders();
     } catch (err) {
       alert('Failed to update order status.');
@@ -107,26 +128,20 @@ const KitchenDashboard = () => {
     }
   };
 
-  // Group orders by status
   const pendingOrders = orders.filter(o => o.status === 'Pending');
   const preparingOrders = orders.filter(o => o.status === 'Preparing');
   const readyOrders = orders.filter(o => o.status === 'Ready');
 
-  const renderBadge = status => (
-    <span className={`status-badge status-${status.toLowerCase()}`}>{status}</span>
-  );
-
   const renderOrderCard = (order) => {
     const tableNumber = order.table_number || order.customer?.table_number || 'N/A';
-    // "and N more" logic:
     const itemsToShow = order.items.slice(0, 3);
     const moreCount = order.items.length - 3;
 
     return (
       <div key={order.id} className={`order-card ${order.status === 'Ready' ? 'ready' : ''}`} onClick={() => setSelectedOrder(order)}>
-        <div className="card-header">
+        <div className="order-card-header">
           <strong>Table #{tableNumber}</strong>
-          {renderBadge(order.status)}
+          <TimeAgo timestamp={order.created_at} />
         </div>
         <ul className="item-list">
           {itemsToShow.map(item => (

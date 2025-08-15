@@ -1,0 +1,148 @@
+/* MenuPage.module.css */
+.container {
+  padding: 1rem;
+  padding-bottom: 100px;
+  max-width: 1200px; /* Constrain width on large screens */
+  margin: 0 auto;    /* Center the container */
+}
+
+.loader {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.2rem;
+}
+
+.section {
+  margin-bottom: 2.5rem;
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+/* Horizontal Scroll for Most Liked */
+.horizontalScroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.horizontalScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.likedCard {
+  flex: 0 0 120px;
+  text-align: center;
+}
+
+.likedCard img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  margin-bottom: 0.5rem;
+}
+
+.likedCard p {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* --- UPDATED: Responsive Grids for Specials and Menu --- */
+.specialsGrid,
+.menuGrid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+/* Default mobile view: 1 column for specials, 2 for menu */
+.specialsGrid {
+  grid-template-columns: 1fr;
+}
+.menuGrid {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Tablet view */
+@media (min-width: 768px) {
+  .specialsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .menuGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Desktop view */
+@media (min-width: 1024px) {
+  .specialsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .menuGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+
+.dishCard {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.dishCard.unavailable {
+  opacity: 0.6;
+}
+
+.dishCard img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.dishInfo {
+  padding: 0.75rem;
+  flex-grow: 1;
+}
+
+.dishInfo h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+}
+
+.dishInfo p {
+  margin: 0;
+  color: #555;
+}
+
+.dishCard button {
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  background-color: #1abc9c;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dishCard button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.noResults {
+    text-align: center;
+    color: #666;
+    padding: 2rem;
+}

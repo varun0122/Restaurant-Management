@@ -43,7 +43,6 @@ const BillingPage = () => {
       return;
     }
     try {
-      // For staff, we use the main apply_discount which also approves special discounts
       await apiClient.post(`/billing/${billId}/apply-discount/`, { code });
       fetchUnpaidBills();
     } catch (error) {
@@ -73,7 +72,6 @@ const BillingPage = () => {
                 <div key={bill.id} className={styles.billCard}>
                   <div className={styles.header}>
                     <h5>Table {bill.table_number}</h5>
-                    {/* --- NEW: Show notification for pending discount --- */}
                     {bill.discount_request_pending && (
                         <span className={styles.pendingNotification}>Approval Needed</span>
                     )}
@@ -82,7 +80,8 @@ const BillingPage = () => {
                   <div className={styles.body}>
                     <h6>All Items Ordered:</h6>
                     <ul className={styles.itemList}>
-                      {bill.orders.flatMap(order => order.items).map(item => (
+                      {/* --- FIX: Add a fallback to an empty array to prevent crash --- */}
+                      {(bill.orders || []).flatMap(order => order.items || []).map(item => (
                         <li key={`${bill.id}-${item.id}`}>
                           <span>{item.dish.name}</span>
                           <span>x {item.quantity}</span>

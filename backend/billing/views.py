@@ -173,3 +173,14 @@ def customer_remove_discount(request, bill_id):
 
     except (Bill.DoesNotExist, Customer.DoesNotExist):
         return Response({'error': 'Bill not found or you do not have permission.'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def recent_bills_list(request):
+    """
+    Returns a list of all bills created on the current day.
+    """
+    today = timezone.now().date()
+    todays_bills = Bill.objects.filter(created_at__date=today).order_by('-created_at')
+    serializer = BillSerializer(todays_bills, many=True)
+    return Response(serializer.data)

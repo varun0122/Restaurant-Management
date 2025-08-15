@@ -4,13 +4,10 @@ from rest_framework import serializers
 from django.db.models import Sum, F, DecimalField
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-# Import your models
 from menu.models import Dish
 from customers.models import Customer
 from .models import Order, OrderItem
 from billing.models import Bill
-
-# Import the correct CustomerSerializer from the customers app
 from customers.serializers import CustomerSerializer
 
 # ====================================================================
@@ -57,15 +54,8 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = [
-            'id', 
-            'customer', 
-            'status', 
-            'created_at', 
-            'items', 
-            'table_number', 
-            'bill',
-            'payment_status',
-            'total_amount'
+            'id', 'customer', 'status', 'created_at', 'items', 
+            'table_number', 'bill', 'payment_status', 'total_amount'
         ]
 
     def get_payment_status(self, obj):
@@ -89,12 +79,8 @@ class OrderItemWriteSerializer(serializers.ModelSerializer):
 
 class OrderWriteSerializer(serializers.ModelSerializer):
     items = OrderItemWriteSerializer(many=True)
-    
-    # This field is now optional to support staff-placed orders
     customer = serializers.PrimaryKeyRelatedField(
-        queryset=Customer.objects.all(),
-        required=False,
-        allow_null=True
+        queryset=Customer.objects.all(), required=False, allow_null=True
     )
 
     class Meta:
@@ -103,13 +89,9 @@ class OrderWriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
-        
-        # The view will handle assigning a "Walk-in" customer if needed
         order = Order.objects.create(**validated_data)
-        
         for item_data in items_data:
             OrderItem.objects.create(order=order, **item_data)
-            
         return order
 
 # ====================================================================
@@ -120,18 +102,13 @@ class RecentOrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     payment_status = serializers.SerializerMethodField()
     total_amount = serializers.SerializerMethodField()
+    discount_amount = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = [
-            'id', 
-            'customer', 
-            'table_number', 
-            'total_amount',
-            'status', 
-            'payment_status',
-            'created_at', 
-            'items'
+            'id', 'customer', 'table_number', 'total_amount', 'discount_amount',
+            'status', 'payment_status', 'created_at', 'items'
         ]
 
     def get_payment_status(self, obj):
@@ -145,9 +122,16 @@ class RecentOrderSerializer(serializers.ModelSerializer):
         )['total']
         return total or 0.00
     
+    def get_discount_amount(self, obj):
+        if hasattr(obj, 'bill') and obj.bill:
+            return obj.bill.discount_amount
+        return 0.00
+    
+# --- FIX: This serializer now correctly uses OrderItemSerializer ---
 class OrderSerializerForBilling(serializers.ModelSerializer):
+    # This was the source of the bug. It now correctly includes the list of items.
     items = OrderItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = Order
-        fields = ['items']
+        fields = ['id', 'status', 'items']

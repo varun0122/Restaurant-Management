@@ -1,25 +1,23 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { FiMenu } from 'react-icons/fi';
 import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import Sidebar from './components/Sidebar';
 import BillingPage from './pages/BillingPage';
-// Import the pages you moved
 import KitchenDashboard from './pages/KitchenDashboard';
 import AllOrdersPage from './pages/AllOrdersPage';
 import AdminQRDownload from './pages/AdminQRDownload';
-// --- IMPORT THE NEW PAGE ---
 import MenuManagementPage from './pages/MenuManagementPage';
 import StaffManagementPage from './pages/StaffManagementPage';
-import StaffFormModal from './components/StaffFormModal';
 import InventoryPage from './pages/InventoryPage';
 import POSPage from './pages/POSPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import DiscountsPage from './pages/DiscountsPage';
+
 import './App.css';
-// This component wraps our pages with the sidebar
-const AppLayout = ({ children }) => {
+
+const AppLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
    return (
     <div className="app-layout">
@@ -28,7 +26,7 @@ const AppLayout = ({ children }) => {
         <button className="hamburger-button" onClick={() => setIsSidebarOpen(true)}>
           <FiMenu />
         </button>
-        {children}
+        <Outlet />
       </div>
     </div>
   );
@@ -38,21 +36,22 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* --- FIX: The login route is now standalone and NOT inside the layout --- */}
         <Route path="/login" element={<LoginPage />} />
         
-        {/* --- Public routes for all staff --- */}
-        <Route path="/pos" element={<AppLayout><POSPage /></AppLayout>} />
-        <Route path="/kitchen" element={<AppLayout><KitchenDashboard /></AppLayout>} />
-
-        {/* --- Protected routes for superusers only --- */}
-        <Route path="/" element={<AppLayout><ProtectedRoute><DashboardPage /></ProtectedRoute></AppLayout>} />
-        <Route path="/orders" element={<AppLayout><ProtectedRoute><AllOrdersPage /></ProtectedRoute></AppLayout>} />
-        <Route path="/qr-codes" element={<AppLayout><ProtectedRoute><AdminQRDownload /></ProtectedRoute></AppLayout>} />
-        <Route path="/billing" element={<AppLayout><ProtectedRoute><BillingPage /></ProtectedRoute></AppLayout>} />
-        <Route path="/menu" element={<AppLayout><ProtectedRoute><MenuManagementPage /></ProtectedRoute></AppLayout>} />
-        <Route path="/staff" element={<AppLayout><ProtectedRoute><StaffManagementPage /></ProtectedRoute></AppLayout>} />
-        <Route path="/inventory" element={<AppLayout><ProtectedRoute><InventoryPage /></ProtectedRoute></AppLayout>} />
-        <Route path="/discounts" element={<AppLayout><ProtectedRoute><DiscountsPage /></ProtectedRoute></AppLayout>} />
+        {/* This parent route applies the sidebar layout to all its children */}
+        <Route element={<AppLayout />}>
+            <Route path="/pos" element={<POSPage />} />
+            <Route path="/kitchen" element={<KitchenDashboard />} />
+            <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/orders" element={<ProtectedRoute><AllOrdersPage /></ProtectedRoute>} />
+            <Route path="/qr-codes" element={<ProtectedRoute><AdminQRDownload /></ProtectedRoute>} />
+            <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
+            <Route path="/menu" element={<ProtectedRoute><MenuManagementPage /></ProtectedRoute>} />
+            <Route path="/staff" element={<ProtectedRoute><StaffManagementPage /></ProtectedRoute>} />
+            <Route path="/inventory" element={<ProtectedRoute><InventoryPage /></ProtectedRoute>} />
+            <Route path="/discounts" element={<ProtectedRoute><DiscountsPage /></ProtectedRoute>} />
+        </Route>
       </Routes>
     </Router>
   );

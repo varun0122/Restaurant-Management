@@ -16,4 +16,5 @@ urlpatterns = [
       path('all/', views.all_orders_list, name='all-orders-list'),
       path('status/<int:order_id>/', views.get_order_status, name='order-status'),
       path('my-history/',views.customer_order_history, name='customer-order-history'),
+      path('live-orders/', views.live_orders_list, name='live-orders'),
 ]

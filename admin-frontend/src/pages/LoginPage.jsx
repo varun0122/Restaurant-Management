@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios'; // We use the original axios for the login request itself
+import apiClient from '../api/axiosConfig';
 import styles from './LoginPage.module.css';
 
 const LoginPage = () => {
@@ -11,21 +11,18 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/token/', {
+      const response = await apiClient.post('/token/', {
         username,
         password,
       });
-
-      // Save the token to localStorage
+      
+      // On successful login, store the tokens AND a timestamp
       localStorage.setItem('admin_access_token', response.data.access);
       localStorage.setItem('admin_refresh_token', response.data.refresh);
-      
-      // Redirect to the dashboard
-      navigate('/');
+      localStorage.setItem('admin_login_timestamp', Date.now()); // Store current time in milliseconds
 
+      navigate('/'); // Redirect to dashboard
     } catch (err) {
       setError('Failed to login. Please check your username and password.');
       console.error(err);
@@ -34,31 +31,31 @@ const LoginPage = () => {
 
   return (
     <div className={styles.container}>
-      <form className={styles.form} onSubmit={handleSubmit}>
+      <div className={styles.loginBox}>
         <h2>Admin Login</h2>
-        {error && <p className={styles.error}>{error}</p>}
-        <div className={styles.inputGroup}>
-          <label htmlFor="username">Username</label>
-          <input
-            type="text"
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div className={styles.inputGroup}>
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" className={styles.submitButton}>Login</button>
-      </form>
+        <form onSubmit={handleSubmit}>
+          <div className={styles.inputGroup}>
+            <label>Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <label>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          {error && <p className={styles.error}>{error}</p>}
+          <button type="submit" className={styles.loginButton}>Login</button>
+        </form>
+      </div>
     </div>
   );
 };

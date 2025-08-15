@@ -17,7 +17,7 @@ from menu.models import Dish, DishIngredient
 from billing.models import Bill
 from tables.models import Table
 from inventory.models import Ingredient
-
+from decimal import Decimal
 # Import all serializers needed
 from .serializers import (
     OrderSerializer, 
@@ -148,36 +148,50 @@ def kitchen_orders(request):
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def dashboard_summary(request):
+    """
+    Provides an enhanced summary of key metrics for the admin dashboard.
+    --- FIX: Now includes total discounts given today. ---
+    """
     today = timezone.now().date()
+
     todays_orders_count = Order.objects.filter(created_at__date=today).count()
     pending_orders_count = Order.objects.filter(status='Pending').count()
     total_dishes_count = Dish.objects.count()
 
-    paid_revenue_today = 0
+    paid_revenue_today = Decimal('0.00')
+    total_discounts_today = Decimal('0.00') # --- NEW: Initialize discount total ---
+    
     paid_bills_today = Bill.objects.filter(is_paid=True, paid_at__date=today)
     for bill in paid_bills_today:
-        total = OrderItem.objects.filter(order__bill=bill).aggregate(
+        gross_total = OrderItem.objects.filter(order__bill=bill).aggregate(
             total=Sum(F('quantity') * F('dish__price'), output_field=DecimalField())
-        )['total'] or 0
-        paid_revenue_today += total
+        )['total'] or Decimal('0.00')
+        
+        net_total = gross_total - bill.discount_amount
+        paid_revenue_today += net_total
+        
+        # --- NEW: Add the bill's discount to the daily total ---
+        total_discounts_today += bill.discount_amount
 
-    unpaid_revenue = 0
+    unpaid_revenue = Decimal('0.00')
     unpaid_bills = Bill.objects.filter(is_paid=False)
     for bill in unpaid_bills:
-        total = OrderItem.objects.filter(order__bill=bill).aggregate(
+        gross_total = OrderItem.objects.filter(order__bill=bill).aggregate(
             total=Sum(F('quantity') * F('dish__price'), output_field=DecimalField())
-        )['total'] or 0
-        unpaid_revenue += total
+        )['total'] or Decimal('0.00')
+
+        net_total = gross_total - bill.discount_amount
+        unpaid_revenue += net_total
 
     data = {
         'todays_orders': todays_orders_count,
         'pending_orders': pending_orders_count,
         'total_dishes': total_dishes_count,
-        'paid_revenue_today': float(paid_revenue_today),
-        'unpaid_revenue': float(unpaid_revenue),
+        'paid_revenue_today': paid_revenue_today,
+        'unpaid_revenue': unpaid_revenue,
+        'total_discounts_today': total_discounts_today, # --- NEW: Add to response ---
     }
     return Response(data)
-
 
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
@@ -224,20 +238,56 @@ def recent_orders(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def kitchen_display_orders(request):
+    """
+    A view for staff to see all active orders that require action.
+    --- FIX: Now uses a "business day" logic to handle late-night orders. ---
+    """
+    now = timezone.now()
+    
+    # Define the cutoff hour for a new "business day" (e.g., 5 AM)
+    cutoff_hour = 5 
+
+    if now.hour < cutoff_hour:
+        # If it's currently between midnight and 5 AM, the business day started yesterday at 5 AM.
+        start_of_business_day = now.replace(hour=cutoff_hour, minute=0, second=0, microsecond=0) - timedelta(days=1)
+    else:
+        # If it's after 5 AM, the business day started today at 5 AM.
+        start_of_business_day = now.replace(hour=cutoff_hour, minute=0, second=0, microsecond=0)
+
     active_statuses = ['Pending', 'Preparing', 'Ready']
-    orders = Order.objects.filter(status__in=active_statuses).order_by('created_at')
+    
+    # Fetch all active orders since the start of the current business day.
+    orders = Order.objects.filter(
+        status__in=active_statuses,
+        created_at__gte=start_of_business_day
+    ).order_by('created_at')
+    
     serializer = OrderSerializer(orders, many=True)
     return Response(serializer.data)
+
 
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def update_order_status(request, order_id):
+    """
+    Allows staff to update the status of an order.
+    --- FIX: Now checks against the business day, not just the calendar day. ---
+    """
     try:
         order = Order.objects.get(id=order_id)
-        if order.created_at.date() < date.today():
+        
+        now = timezone.now()
+        cutoff_hour = 5
+        if now.hour < cutoff_hour:
+            start_of_business_day = now.replace(hour=cutoff_hour, minute=0, second=0, microsecond=0) - timedelta(days=1)
+        else:
+            start_of_business_day = now.replace(hour=cutoff_hour, minute=0, second=0, microsecond=0)
+
+        # Prevent updating orders from a previous business day.
+        if order.created_at < start_of_business_day:
             return Response(
-                {'error': 'Cannot update an order from a previous day.'}, 
+                {'error': 'Cannot update an order from a previous business day.'}, 
                 status=status.HTTP_403_FORBIDDEN
             )
 
@@ -323,3 +373,18 @@ def customer_order_history(request):
         return Response(serializer.data)
     except Customer.DoesNotExist:
         return Response({'error': 'Customer profile not found'}, status=status.HTTP_404_NOT_FOUND)
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def live_orders_list(request):
+    """
+    Returns a list of all active orders from today for the dashboard.
+    """
+    today = timezone.now().date()
+    active_orders = Order.objects.filter(
+        created_at__date=today,
+        status__in=['Pending', 'Preparing', 'Ready']
+    ).order_by('created_at')
+    
+    # We can reuse the RecentOrderSerializer for this
+    serializer = RecentOrderSerializer(active_orders, many=True)
+    return Response(serializer.data)

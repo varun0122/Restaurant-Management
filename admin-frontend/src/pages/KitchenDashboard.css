@@ -1,14 +1,44 @@
+/* KitchenDashboard.css */
+
+.kitchen-dashboard {
+    padding: 2rem;
+}
+
 .kitchen-dashboard h4 {
   font-size: 1.8rem;
   margin-bottom: 1.5rem;
   color: #333;
 }
 
-.order-grid {
+.ws-fallback {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* --- FIX: Updated grid layout for better space distribution --- */
+.order-status-grid {
   display: grid;
-  /* This creates a responsive grid that adjusts to screen size */
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-auto-columns: 1fr; /* Set a default width for each column */
+  grid-auto-flow: column; /* Lay out children in columns */
   gap: 1.5rem;
+}
+
+.status-column {
+    background-color: #f4f5f7;
+    padding: 1rem;
+    border-radius: 8px;
+    height: calc(100vh - 150px); /* Set a fixed height */
+    overflow-y: auto; /* Make each column scrollable */
+}
+
+.status-column h3 {
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #eee;
+    margin-bottom: 1rem;
 }
 
 .order-card {
@@ -18,41 +48,47 @@
   display: flex;
   flex-direction: column;
   transition: transform 0.2s ease;
+  margin-bottom: 1rem;
+  cursor: pointer;
 }
 
 .order-card:hover {
     transform: translateY(-5px);
 }
 
-.card-header {
+.order-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
   border-bottom: 1px solid #eee;
   font-size: 1.1rem;
-  cursor: pointer;
+  gap: 0.5rem; /* Add gap for spacing */
 }
 
-.status-badge {
-  padding: 0.3rem 0.8rem;
-  border-radius: 15px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  color: #fff;
+/* --- NEW: Styles to handle long table numbers --- */
+.order-card-header strong {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1; /* Allow it to take available space */
 }
-.status-pending { background-color: #ffc107; color: #333; }
-.status-preparing { background-color: #17a2b8; }
-.status-ready { background-color: #28a745; }
-.status-served { background-color: #6c757d; }
 
+.time-ago {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #e74c3c; /* Red color to indicate urgency */
+    background-color: #fbeaea;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    flex-shrink: 0; /* Prevent the time from shrinking */
+}
 
 .item-list {
   list-style: none;
   padding: 1rem;
   margin: 0;
   flex-grow: 1;
-  cursor: pointer;
 }
 
 .item {
@@ -117,3 +153,16 @@
 .item-modal:nth-child(even) {
     background-color: #f9f9f9;
 }
+
+/* General Button Styles from your old code */
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+}
+.btn-primary { background-color: #007bff; color: white; }
+.btn-success { background-color: #28a745; color: white; }
+.btn-info { background-color: #17a2b8; color: white; }
+.btn-secondary { background-color: #6c757d; color: white; }

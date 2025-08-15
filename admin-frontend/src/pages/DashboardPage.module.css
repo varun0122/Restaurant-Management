@@ -157,3 +157,74 @@
 .unpaid {
   background-color: #dc3545; /* Red */
 }
+.paymentStatus {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: white;
+}
+
+.paidStatus {
+    background-color: #10b981; /* Green */
+}
+
+.unpaidStatus {
+    background-color: #f59e0b; /* Amber */
+}
+
+/* --- NEW: Styles for Expanded Details Row --- */
+.detailsRow {
+    background-color: #f9fafb;
+}
+
+.detailsContent {
+    padding: 1.5rem;
+}
+
+.detailsContent h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.subOrder {
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.subOrderHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.itemsList {
+  list-style: none;
+  padding: 0.5rem 0 0 0;
+  margin: 0;
+  border-top: 1px solid #f3f4f6;
+}
+
+.itemsList li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+/* --- Styles for Order Statuses (reused from other components) --- */
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+.pending { background-color: #fef3c7; color: #92400e; }
+.preparing { background-color: #dbeafe; color: #1e40af; }
+.ready { background-color: #d1fae5; color: #065f46; }
+.served { background-color: #e5e7eb; color: #374151; }

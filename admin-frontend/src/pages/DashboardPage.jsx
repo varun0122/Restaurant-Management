@@ -4,12 +4,11 @@ import styles from './DashboardPage.module.css';
 import SalesChart from '../components/SalesChart';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
-// --- "Today's Orders" component is now defined inside the dashboard file ---
 const RecentOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
-
+  
   useEffect(() => {
     const fetchRecentOrders = async () => {
       try {
@@ -25,8 +24,8 @@ const RecentOrders = () => {
   }, []);
 
   const toggleOrderExpansion = (orderId) => {
-    setExpandedOrderId(prevId => (prevId === orderId ? null : orderId));
-  };
+  setExpandedOrderId(prevId => (prevId === orderId ? null : orderId));
+};
 
   if (loading) {
     return <div className={styles.recentOrdersContainer}>Loading today's orders...</div>;
@@ -51,7 +50,9 @@ const RecentOrders = () => {
             <tr>
               <th>Order ID</th>
               <th>Customer</th>
-              <th>Total</th>
+              <th>Actual Total</th>
+              <th>Discount</th>
+              <th>Final Total</th>
               <th>Order Status</th>
               <th>Payment</th>
               <th>Time</th>
@@ -59,39 +60,48 @@ const RecentOrders = () => {
             </tr>
           </thead>
           <tbody>
-            {orders.map(order => (
-              <React.Fragment key={order.id}>
-                <tr onClick={() => toggleOrderExpansion(order.id)} className={styles.orderRow}>
-                  <td>#{order.id}</td>
-                  <td>{order.customer ? `${order.customer.phone_number} (T${order.table_number})` : 'N/A'}</td>
-                  <td>₹{order.total_amount.toFixed(2)}</td>
-                  <td><span className={`${styles.status} ${getStatusClass(order.status)}`}>{order.status}</span></td>
-                  <td>
-                    <span className={`${styles.paymentStatus} ${getPaymentStatusClass(order.payment_status)}`}>
-                      {order.payment_status}
-                    </span>
-                  </td>
-                  <td>{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                  <td className={styles.chevronCell}>
-                    {expandedOrderId === order.id ? <FiChevronUp /> : <FiChevronDown />}
-                  </td>
-                </tr>
-                {expandedOrderId === order.id && (
-                  <tr className={styles.itemsRow}>
-                    <td colSpan="7">
-                      <ul className={styles.itemsList}>
-                        {order.items.map(item => (
-                          <li key={item.id}>
-                            <span>{item.dish.name}</span>
-                            <span>x {item.quantity}</span>
-                          </li>
-                        ))}
-                      </ul>
+            {orders.map(order => {
+              const actualTotal = parseFloat(order.total_amount || 0);
+              const discount = parseFloat(order.discount_amount || 0);
+              const finalTotal = actualTotal - discount;
+
+              return (
+                <React.Fragment key={order.id}>
+                  <tr onClick={() => toggleOrderExpansion(order.id)} className={styles.orderRow}>
+                    <td>#{order.id}</td>
+                    <td>{order.customer ? `${order.customer.phone_number} (T${order.table_number})` : 'N/A'}</td>
+                    <td>₹{actualTotal.toFixed(2)}</td>
+                    <td>₹{discount.toFixed(2)}</td>
+                    <td><strong>₹{finalTotal.toFixed(2)}</strong></td>
+                    <td><span className={`${styles.status} ${getStatusClass(order.status)}`}>{order.status}</span></td>
+                    <td>
+                      <span className={`${styles.paymentStatus} ${getPaymentStatusClass(order.payment_status)}`}>
+                        {order.payment_status}
+                      </span>
+                    </td>
+                    <td>{new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                    <td className={styles.chevronCell}>
+                      {expandedOrderId === order.id ? <FiChevronUp /> : <FiChevronDown />}
                     </td>
                   </tr>
-                )}
-              </React.Fragment>
-            ))}
+                  {expandedOrderId === order.id && (
+                    <tr className={styles.itemsRow}>
+                      {/* --- FIX: The colspan must match the number of columns in the header --- */}
+                      <td colSpan="9">
+                        <ul className={styles.itemsList}>
+                          {order.items.map(item => (
+                            <li key={item.id}>
+                              <span>{item.dish.name}</span>
+                              <span>x {item.quantity}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              )
+            })}
           </tbody>
         </table>
       </div>
@@ -137,15 +147,15 @@ const DashboardPage = () => {
         </div>
         <div className={`${styles.card} ${styles.paid}`}>
           <h3>Paid Today</h3>
-          <p>₹{summary.paid_revenue_today.toFixed(2)}</p>
+          <p>₹{Number(summary.paid_revenue_today).toFixed(2)}</p>
         </div>
         <div className={`${styles.card} ${styles.unpaid}`}>
           <h3>Unpaid Bills</h3>
-          <p>₹{summary.unpaid_revenue.toFixed(2)}</p>
+          <p>₹{Number(summary.unpaid_revenue).toFixed(2)}</p>
         </div>
-        <div className={styles.card}>
-          <h3>Pending Orders</h3>
-          <p>{summary.pending_orders}</p>
+        <div className={`${styles.card} ${styles.discounts}`}>
+          <h3>Discounts Today</h3>
+          <p>₹{Number(summary.total_discounts_today).toFixed(2)}</p>
         </div>
       </div>
       
