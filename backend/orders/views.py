@@ -23,7 +23,8 @@ from .serializers import (
     OrderSerializer, 
     RecentOrderSerializer, 
     MyTokenObtainPairSerializer, 
-    OrderWriteSerializer
+    OrderWriteSerializer,
+    DashboardOrderSerializer
 )
 
 # --- VIEW 1: For Customer Self-Service Orders ---
@@ -231,7 +232,7 @@ def recent_orders(request):
     orders = Order.objects.filter(created_at__date=today).annotate(
         status_order=status_order
     ).order_by('status_order', '-created_at')
-    serializer = RecentOrderSerializer(orders, many=True) 
+    serializer = OrderSerializer(orders, many=True) 
     return Response(serializer.data)
 
 
@@ -387,4 +388,34 @@ def live_orders_list(request):
     
     # We can reuse the RecentOrderSerializer for this
     serializer = RecentOrderSerializer(active_orders, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def dashboard_recent_orders(request):
+    """
+    Provides a detailed list of today's orders specifically for the admin dashboard,
+    including full financial details from the associated bill.
+    """
+    today = timezone.now().date()
+    
+    # You can reuse your ordering logic if you wish
+    status_order = Case(
+        When(status='Pending', then=Value(1)),
+        When(status='Preparing', then=Value(2)),
+        When(status='Ready', then=Value(3)),
+        When(status='Served', then=Value(4)),
+        default=Value(5),
+        output_field=IntegerField(),
+    )
+    
+    orders = Order.objects.filter(created_at__date=today).select_related(
+        'bill', 'customer'
+    ).prefetch_related('items__dish').annotate(
+        status_order=status_order
+    ).order_by('status_order', '-created_at')
+
+    # ✨ Use the new, correct serializer
+    serializer = DashboardOrderSerializer(orders, many=True)
     return Response(serializer.data)

@@ -10,6 +10,7 @@ urlpatterns = [
     path('dashboard-summary/', views.dashboard_summary, name='dashboard-summary'),
     path('daily-sales-chart/', views.daily_sales_chart, name='daily-sales-chart'),
     path('recent-orders/', views.recent_orders, name='recent-orders'),
+    path('dashboard-orders/', views.dashboard_recent_orders, name='dashboard-orders'),
     path('kitchen-display/', views.kitchen_display_orders, name='kitchen-display'),
     path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
      path('<int:order_id>/update-status/',views.update_order_status, name='update-order-status'),

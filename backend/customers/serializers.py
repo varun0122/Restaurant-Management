@@ -19,5 +19,5 @@ class CustomerSerializer(serializers.ModelSerializer):
         # --- THE FIX IS HERE ---
         # We have removed 'table_number' from this list because it is no longer
         # part of the Customer model.
-        fields = ['id', 'phone_number', 'last_login']
+        fields = ['id', 'phone_number', 'last_login','loyalty_coins']
 

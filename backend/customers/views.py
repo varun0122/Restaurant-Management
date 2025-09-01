@@ -1,4 +1,4 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Customer
@@ -6,6 +6,7 @@ from .serializers import CustomerSerializer
 import random # Make sure to import random
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated
 
 @api_view(['POST'])
 def send_otp(request):
@@ -65,3 +66,15 @@ def verify_otp(request):
     else:
         # If the OTP does not match, return an error
         return Response({'error': 'Invalid OTP.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_current_customer(request):
+    user = request.user
+    try:
+        customer = Customer.objects.get(phone_number=user.username)
+        serializer = CustomerSerializer(customer)
+        return Response(serializer.data)
+    except Customer.DoesNotExist:
+        return Response({'error': 'Customer not found.'}, status=status.HTTP_404_NOT_FOUND)

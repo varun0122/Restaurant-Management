@@ -18,7 +18,7 @@ class BillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bill
         fields = [
-            'id', 'table_number', 'is_paid', 'created_at', 'orders', 
+            'id', 'table_number', 'is_paid', 'created_at', 'orders', 'coins_redeemed', 'coin_discount',
             'total_amount', 'applied_discount', 'discount_amount', 
             'discount_request_pending', 'bill_status'
         ]
@@ -45,13 +45,20 @@ class BillSerializer(serializers.ModelSerializer):
             return 'Mixed'
 
     def to_representation(self, instance):
-        """
-        Convert `Decimal` fields to float for JSON serialization.
-        """
         data = super().to_representation(instance)
+        if 'discount_amount' in data and isinstance(data['discount_amount'], Decimal):
+            data['discount_amount'] = float(data['discount_amount'])
         
-        discount = data.get('discount_amount')
-        if discount is not None and isinstance(discount, Decimal):
-            data['discount_amount'] = float(discount)
-
+        if 'coin_discount' in data and isinstance(data['coin_discount'], Decimal):
+            data['coin_discount'] = float(data['coin_discount'])
+        
+        if 'subtotal' in data and isinstance(data['subtotal'], Decimal):
+            data['subtotal'] = float(data['subtotal'])
+        
+        if 'tax_amount' in data and isinstance(data['tax_amount'], Decimal):
+            data['tax_amount'] = float(data['tax_amount'])
+        
+        if 'final_amount' in data and isinstance(data['final_amount'], Decimal):
+            data['final_amount'] = float(data['final_amount'])
+        
         return data
