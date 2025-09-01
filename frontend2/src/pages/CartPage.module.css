@@ -1,0 +1,102 @@
+/* Main container for the cart page */
+.container {
+  padding: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+  color: #f0f0f0;
+}
+
+/* Styling for a single item in the cart */
+.cartItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #333;
+}
+
+.cartItem h6 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.price {
+  color: #aaa;
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0 0;
+}
+
+/* Controls for increasing/decreasing quantity */
+.quantityControls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.quantityControls button {
+  background-color: #333;
+  color: #fff;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.quantityControls span {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+/* Summary section for totals */
+.total {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #444;
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+/* Main action button */
+.placeOrderButton {
+  width: 100%;
+  padding: 0.8rem;
+  margin-top: 1.5rem;
+  background-color: #D4AF37; /* Gold accent color */
+  color: #121212; /* Dark text for contrast */
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Styling for the empty cart message */
+.emptyCart {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.emptyCart h2 {
+  margin-bottom: 1rem;
+}
+
+.menuButton {
+  padding: 0.7rem 1.5rem;
+  margin-top: 1.5rem;
+  background-color: #D4AF37;
+  color: #121212;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+}

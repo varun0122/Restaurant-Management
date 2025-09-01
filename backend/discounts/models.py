@@ -18,7 +18,7 @@ class Discount(models.Model):
     
     # This flag is for special offers like student discounts
     requires_staff_approval = models.BooleanField(default=False, help_text="If checked, this discount must be approved by a staff member.")
-
+    is_hidden = models.BooleanField(default=False, help_text="If checked, this discount is hidden from everyone except admins.")
     def __str__(self):
         if self.discount_type == 'PERCENTAGE':
             return f"{self.code} ({self.value}% off)"

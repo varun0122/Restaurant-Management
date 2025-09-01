@@ -1,13 +1,14 @@
+/* Categories.module.css */
+
 .container {
-  padding: 0 1.5rem 1rem;
-  background-color: #ffffff;
-  border-bottom: 1px solid #f0f0f0;
+  /* Use the dark background color, with padding for horizontal scroll */
+  padding: 1rem 0 1rem 1.5rem;
+  background-color: #121212; /* Match the main app background */
 }
 
 .scrollWrapper {
   display: flex;
   overflow-x: auto;
-  padding-bottom: 10px; /* for scrollbar spacing if visible */
   scrollbar-width: none; /* For Firefox */
   -ms-overflow-style: none;  /* For Internet Explorer and Edge */
 }
@@ -19,13 +20,13 @@
 
 .categoryButton {
   flex-shrink: 0; /* Prevents buttons from shrinking */
-  padding: 0.5rem 1.25rem;
+  padding: 0.6rem 1.5rem;
   margin-right: 0.75rem;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #555;
-  background-color: #f0f0f0;
-  border: 1px solid transparent;
+  color: #cccccc; /* Light grey text for inactive buttons */
+  background-color: #2a2a2a; /* Dark charcoal for inactive buttons */
+  border: 1px solid #444;
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
@@ -33,12 +34,14 @@
 }
 
 .categoryButton:hover {
-  background-color: #e0e0e0;
+  background-color: #383838;
+  border-color: #666;
 }
 
 .categoryButton.active {
-  background-color: #007bff; /* A nice blue for active state */
-  color: #ffffff;
-  border-color: #0056b3;
-  font-weight: 600;
+  background-color: #D4AF37; /* Rich Gold for active state */
+  color: #121212; /* Black text for high contrast on gold */
+  border-color: #E6C200; /* Brighter gold border */
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); /* Add a subtle glow */
 }

@@ -1,148 +1,200 @@
-/* MenuPage.module.css */
-.container {
-  padding: 1rem;
-  padding-bottom: 100px;
-  max-width: 1200px; /* Constrain width on large screens */
-  margin: 0 auto;    /* Center the container */
-}
+/* --- 1. Global Variables & Base Styles (Black & Gold Theme) --- */
+ :root {
+  --primary-color: #FFD700; /* Rich Gold */
+  --primary-hover-color: #E6C200; /* Slightly darker gold for hover */
+  --secondary-color: #000000; /* Black */
+  --light-gray-color: #444444; /* Dark Gray */
+  --medium-gray-color: #777777;
+  --dark-gray-color: #AAAAAA; /* Light Gray for less emphasis text */
+  --font-color: #EEEEEE; /* Light text on dark background */
+  --card-bg: #1A1A1A; /* Dark Charcoal Card Background */
+  --background-color: #0D0D0D; /* Very Dark Background */
 
-.loader {
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+  --shadow-lg: 0 10px 20px rgba(0,0,0,0.4);
+
+  --border-radius-md: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+
+  --transition-fast: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+ }
+
+ body {
+  background-color: var(--background-color);
+  color: var(--font-color);
+ }
+
+ /* --- 2. Layout & Helpers --- */
+ .container {
+  padding: var(--spacing-md);
+  padding-bottom: 100px;
+  max-width: 1200px;
+  margin: 0 auto;
+ }
+
+ .loader {
   text-align: center;
   padding: 3rem;
   font-size: 1.2rem;
-}
+  color: var(--dark-gray-color);
+ }
 
-.section {
+ .section {
   margin-bottom: 2.5rem;
-}
+ }
 
-.sectionTitle {
-  font-size: 1.5rem;
+ .sectionTitle {
+  font-size: 1.7rem; /* Slightly larger for emphasis */
   font-weight: 700;
-  margin-bottom: 1.5rem;
-}
+  margin-bottom: var(--spacing-lg);
+  color: var(--primary-color); /* Gold section titles */
+  text-shadow: 1px 1px 2px var(--secondary-color);
+ }
 
-/* Horizontal Scroll for Most Liked */
-.horizontalScroll {
+ .noResults {
+  text-align: center;
+  color: var(--medium-gray-color);
+  padding: 2rem;
+ }
+
+ /* --- 3. Horizontal Scroll Section (COMPACT VERSION) --- */
+ .horizontalScroll {
   display: flex;
   overflow-x: auto;
-  gap: 1rem;
-  padding-bottom: 1rem;
+  gap: var(--spacing-md);
+  padding-bottom: var(--spacing-md);
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-.horizontalScroll::-webkit-scrollbar {
+  scroll-snap-type: x mandatory;
+ }
+ .horizontalScroll::-webkit-scrollbar {
   display: none;
-}
+ }
 
-.likedCard {
-  flex: 0 0 120px;
+ .likedCard {
+  flex: 0 0 90px;
   text-align: center;
-}
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: var(--transition-fast);
+ }
 
-.likedCard img {
-  width: 120px;
-  height: 120px;
+ .likedCard:hover,
+ .likedCard:focus-visible {
+  transform: translateY(-4px);
+ }
+
+ .likedCard:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 4px;
+  border-radius: 50%;
+ }
+
+ .likedCard img {
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-md);
   margin-bottom: 0.5rem;
-}
+  border: 1px solid var(--light-gray-color);
+ }
 
-.likedCard p {
+ .likedCard p {
   font-weight: 500;
-  font-size: 0.9rem;
-}
+  font-size: 0.8rem;
+  color: var(--dark-gray-color);
+ }
 
-/* --- UPDATED: Responsive Grids for Specials and Menu --- */
-.specialsGrid,
-.menuGrid {
+ /* --- 4. Responsive Grids --- */
+ .specialsGrid,
+ .menuGrid {
   display: grid;
-  gap: 1.5rem;
-}
+  gap: var(--spacing-lg);
+ }
 
-/* Default mobile view: 1 column for specials, 2 for menu */
-.specialsGrid {
-  grid-template-columns: 1fr;
-}
-.menuGrid {
-  grid-template-columns: 1fr 1fr;
-}
+ .specialsGrid { grid-template-columns: 1fr; }
+ .menuGrid { grid-template-columns: 1fr 1fr; }
 
-/* Tablet view */
-@media (min-width: 768px) {
-  .specialsGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .menuGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
+ @media (min-width: 768px) {
+  .specialsGrid { grid-template-columns: 1fr 1fr; }
+  .menuGrid { grid-template-columns: repeat(3, 1fr); }
+ }
 
-/* Desktop view */
-@media (min-width: 1024px) {
-  .specialsGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .menuGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
+ @media (min-width: 1024px) {
+  .specialsGrid { grid-template-columns: repeat(3, 1fr); }
+  .menuGrid { grid-template-columns: repeat(4, 1fr); }
+ }
 
-
-.dishCard {
-  background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+ /* --- 5. Main Dish Card --- */
+ .dishCard {
+  background: var(--card-bg);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-}
+  transition: var(--transition-fast);
+  border: 1px solid var(--light-gray-color);
+ }
 
-.dishCard.unavailable {
+ .dishCard:hover,
+ .dishCard:focus-within {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+ }
+
+ .dishCard:focus-within {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 4px;
+ }
+
+ .dishCard.unavailable {
   opacity: 0.6;
-}
+ }
 
-.dishCard img {
+ .dishCard img {
   width: 100%;
   height: 150px;
   object-fit: cover;
-}
+ }
 
-.dishInfo {
-  padding: 0.75rem;
+ .dishInfo {
+  padding: var(--spacing-md);
   flex-grow: 1;
-}
+ }
 
-.dishInfo h5 {
-  font-size: 1rem;
+ .dishInfo h5 {
+  font-size: 1.1rem;
   font-weight: 600;
   margin: 0 0 0.25rem 0;
-}
+  color: var(--font-color);
+ }
 
-.dishInfo p {
+ .dishInfo p {
   margin: 0;
-  color: #555;
-}
+  color: var(--dark-gray-color);
+ }
 
-.dishCard button {
+ /* --- 6. Buttons --- */
+ .dishCard button {
   width: 100%;
   padding: 0.75rem;
   border: none;
-  background-color: #1abc9c;
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--secondary-color); /* Black text on gold button */
   font-weight: 700;
   cursor: pointer;
   transition: background-color 0.2s;
-}
+ }
 
-.dishCard button:disabled {
-    background-color: #bdc3c7;
-    cursor: not-allowed;
-}
+ .dishCard button:hover:not(:disabled) {
+  background-color: var(--primary-hover-color);
+ }
 
-.noResults {
-    text-align: center;
-    color: #666;
-    padding: 2rem;
-}
+ .dishCard button:disabled {
+  background-color: var(--medium-gray-color);
+  cursor: not-allowed;
+ }

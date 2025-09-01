@@ -1,23 +1,28 @@
 /* Sidebar.module.css */
+
 .sidebar {
   width: 250px;
-  background-color: #2c3e50;
-  color: white;
+  background-color: #1E1E1E; /* Dark charcoal background */
+  color: #F5F5F5; /* Soft white text */
   display: flex;
   flex-direction: column;
   height: 100vh;
   position: fixed;
   top: 0;
   left: 0;
-  overflow-y: auto; /* Added for scrollability */
+  overflow-y: auto;
+  border-right: 1px solid #333; /* Subtle border */
+  box-shadow: 2px 0 15px rgba(0,0,0,0.3);
 }
 
 .title {
   padding: 1.5rem;
   text-align: center;
-  background-color: #34495e;
+  background-color: #121212; /* Match main app background */
   margin: 0;
   font-size: 1.5rem;
+  color: #FFFFFF;
+  border-bottom: 1px solid #333;
 }
 
 .nav {
@@ -28,39 +33,45 @@
 
 .nav a {
   padding: 1rem 1.5rem;
-  color: #ecf0f1;
+  color: #ccc; /* Lighter grey for inactive links */
   text-decoration: none;
-  transition: background-color 0.2s;
-  border-bottom: 1px solid #34495e;
+  transition: background-color 0.2s, color 0.2s;
+  border-bottom: 1px solid #333;
 }
 
 .nav a:hover {
-  background-color: #34495e;
+  background-color: rgba(212, 175, 55, 0.05); /* Faint gold glow on hover */
+  color: #D4AF37; /* Gold text on hover */
 }
 
 .nav a.active {
-  background-color: #1abc9c;
-  font-weight: bold;
+  background-color: #D4AF37; /* Gold for active state */
+  color: #121212; /* Black text for contrast */
+  font-weight: 700; /* Bolder text for active link */
 }
 
 .logoutButton {
-  padding: 1rem;
-  background-color: #e74c3c;
-  color: white;
+  padding: 1.25rem; /* More padding */
+  background-color: #2a2a2a; /* Darker grey for logout */
+  color: #ff6b6b; /* Bright red for visibility */
   border: none;
+  border-top: 1px solid #333;
   cursor: pointer;
   font-size: 1rem;
   font-weight: bold;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .logoutButton:hover {
-  background-color: #c0392b;
+  background-color: #e74c3c; /* Red background on hover for emphasis */
+  color: white;
 }
 
 .overlay {
   display: none;
 }
 
+/* --- Mobile Styles --- */
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
@@ -77,7 +88,8 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
     z-index: 1500;
     opacity: 0;
     pointer-events: none;

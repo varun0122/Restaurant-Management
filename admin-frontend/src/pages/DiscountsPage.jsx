@@ -15,7 +15,7 @@ const DiscountsPage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // --- FIX: Use the correct URL for the admin discount endpoint ---
+      // Using the correct admin endpoint for all discounts
       const response = await apiClient.get('/discounts/manage/');
       setDiscounts(response.data);
     } catch (err) {
@@ -93,6 +93,8 @@ const DiscountsPage = () => {
               <th>Value</th>
               <th>Status</th>
               <th>Requires Approval</th>
+              {/* --- NEW COLUMN HEADER --- */}
+              <th>Hidden</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -108,6 +110,8 @@ const DiscountsPage = () => {
                   </span>
                 </td>
                 <td>{discount.requires_staff_approval ? 'Yes' : 'No'}</td>
+                {/* --- NEW COLUMN CELL --- */}
+                <td>{discount.is_hidden ? 'Yes' : 'No'}</td>
                 <td className={styles.actions}>
                   <button className={styles.actionButton} onClick={() => handleOpenModal(discount)}><FiEdit /></button>
                   <button 

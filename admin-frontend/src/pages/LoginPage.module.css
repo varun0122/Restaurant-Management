@@ -6,8 +6,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f9fafb; /* Soft gray background */
-  font-family: 'Inter', sans-serif;
+  background-color: #121212; /* Main dark background */
+  font-family: 'Poppins', 'Inter', sans-serif;
   padding: 2rem;
 }
 
@@ -23,10 +23,11 @@
 }
 
 .loginBox {
-  background: white;
+  background: #1E1E1E; /* Dark charcoal */
   padding: 2.5rem;
   border-radius: 16px;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid #333;
   width: 100%;
   max-width: 420px;
   animation: fadeIn 0.4s ease-out;
@@ -36,7 +37,7 @@
 .loginBox h2 {
   text-align: center;
   margin-bottom: 1.5rem;
-  color: #111827;
+  color: #FFFFFF; /* Brighter white for heading */
   font-weight: 700;
   font-size: 1.75rem;
 }
@@ -50,23 +51,25 @@
   margin-bottom: 0.4rem;
   font-weight: 600;
   font-size: 0.95rem;
-  color: #374151;
+  color: #ccc; /* Lighter grey for labels */
 }
 
 .inputGroup input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid #d1d5db;
+  padding: 0.85rem 1rem;
+  border: 1px solid #444;
   border-radius: 10px;
   font-size: 1rem;
   transition: border-color 0.25s, box-shadow 0.25s;
-  background-color: #ffffff;
+  background-color: #121212;
+  color: #F5F5F5;
+  box-sizing: border-box;
 }
 
 .inputGroup input:focus {
-  outline: none;
-  border-color: #06b6d4;
-  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.3);
+ outline: none;
+ border-color: #D4AF37; /* Gold focus border */
+ box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3); /* Gold focus shadow */
 }
 
 .loginButton {
@@ -74,21 +77,25 @@
   padding: 0.85rem;
   border: none;
   border-radius: 10px;
-  background-color: #06b6d4;
-  color: white;
+  background-color: #D4AF37; /* Gold */
+  color: #121212; /* Black text */
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700; /* Bolder */
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
 }
 
 .loginButton:hover {
-  background-color: #0891b2;
+  background-color: #E6C200; /* Brighter gold */
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+  transform: translateY(-2px);
 }
 
 .error {
-  color: #b91c1c;
-  background-color: #fee2e2;
+  color: #ff8a8a; /* Lighter red text */
+  background-color: rgba(231, 76, 60, 0.1); /* Dark red background */
+  border: 1px solid rgba(231, 76, 60, 0.2);
   text-align: center;
   margin-bottom: 1rem;
   padding: 0.75rem;

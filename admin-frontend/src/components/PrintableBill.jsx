@@ -6,11 +6,20 @@ const PrintableBill = ({ bill, onAfterPrint }) => {
 
     let didPrint = false;
 
-    // Helper function to safely format money values
     function safeMoney(val) {
       const num = Number(val ?? 0);
       return isNaN(num) ? '0.00' : num.toFixed(2);
     }
+
+    // ✨ FIX 1: Include coin_discount in the calculations
+    const rawSubtotal = Number(bill.total_amount ?? 0);
+    const promoDiscount = Number(bill.discount_amount ?? 0);
+    const coinDiscount = Number(bill.coin_discount ?? 0);
+    const totalDiscount = promoDiscount + coinDiscount; // Calculate total discount
+    
+    const discountedSubtotal = rawSubtotal - totalDiscount > 0 ? rawSubtotal - totalDiscount : 0;
+    const taxes = discountedSubtotal * 0.05;
+    const grandTotal = discountedSubtotal + taxes;
 
     const printWindow = window.open('', '_blank', 'width=420,height=620');
     if (printWindow) {
@@ -26,10 +35,10 @@ const PrintableBill = ({ bill, onAfterPrint }) => {
               table { width: 100%; border-collapse: collapse; margin-bottom: 1em;}
               th, td { padding: 7px 2px; text-align: left; }
               th { background: #f8f4ec; }
-              tr:nth-child(even) { background: #f9f5f2;}
-              .totals p { display: flex; justify-content: space-between; }
+              .totals p { display: flex; justify-content: space-between; margin: 0.25em 0; }
               .grandTotal { font-size: 1.12em; font-weight: 700; }
               .footer { text-align: center; margin-top: 18px; font-size: 1.01em; color: #917155; }
+              .discount { color: #10b981; font-weight: 600; }
               @media print { body { background: #fff !important; } }
             </style>
           </head>
@@ -61,8 +70,8 @@ const PrintableBill = ({ bill, onAfterPrint }) => {
                           <tr>
                             <td>${item.dish?.name || 'Unknown Item'}</td>
                             <td>${quantity}</td>
-                            <td>₹${isNaN(price) ? '0.00' : price.toFixed(2)}</td>
-                            <td>₹${isNaN(total) ? '0.00' : total.toFixed(2)}</td>
+                            <td>₹${safeMoney(price)}</td>
+                            <td>₹${safeMoney(total)}</td>
                           </tr>
                         `;
                       })
@@ -72,9 +81,20 @@ const PrintableBill = ({ bill, onAfterPrint }) => {
               </table>
               <hr/>
               <div class="totals">
-                <p><strong>Subtotal:</strong> <span>₹${safeMoney(bill.total_amount)}</span></p>
-                <p><strong>Taxes (5%):</strong> <span>₹${safeMoney(Number(bill.total_amount) * 0.05)}</span></p>
-                <p class="grandTotal"><strong>Grand Total:</strong> <span>₹${safeMoney(Number(bill.total_amount) * 1.05)}</span></p>
+                <p><strong>Subtotal:</strong> <span>₹${safeMoney(rawSubtotal)}</span></p>
+                ${
+                  promoDiscount > 0
+                    ? `<p class="discount"><strong>Discount${bill.applied_discount?.code ? ` (${bill.applied_discount.code})` : ''}:</strong> <span>- ₹${safeMoney(promoDiscount)}</span></p>`
+                    : ''
+                }
+                ${
+                  // ✨ FIX 2: Add a new line to display the coin discount
+                  coinDiscount > 0
+                    ? `<p class="discount"><strong>Coin Discount (${bill.coins_redeemed} coins):</strong> <span>- ₹${safeMoney(coinDiscount)}</span></p>`
+                    : ''
+                }
+                <p><strong>Taxes (5%):</strong> <span>₹${safeMoney(taxes)}</span></p>
+                <p class="grandTotal"><strong>Grand Total:</strong> <span>₹${safeMoney(grandTotal)}</span></p>
               </div>
               <p class="footer">Thank you for dining with us!</p>
             </div>
@@ -83,6 +103,7 @@ const PrintableBill = ({ bill, onAfterPrint }) => {
       `);
       printWindow.document.close();
 
+      // This logic handles the printing and closing of the window
       printWindow.onload = () => {
         if (didPrint) return;
         didPrint = true;
@@ -91,15 +112,6 @@ const PrintableBill = ({ bill, onAfterPrint }) => {
         printWindow.close();
         if (onAfterPrint) onAfterPrint();
       };
-
-      setTimeout(() => {
-        if (didPrint) return;
-        didPrint = true;
-        printWindow.focus();
-        printWindow.print();
-        printWindow.close();
-        if (onAfterPrint) onAfterPrint();
-      }, 1000);
     }
   }, [bill, onAfterPrint]);
 

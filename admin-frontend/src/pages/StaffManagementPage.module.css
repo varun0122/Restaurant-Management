@@ -1,7 +1,9 @@
 /* StaffManagementPage.module.css */
+
 .container {
   padding: 2rem;
-  background-color: #f9fafb;
+  /* The main dark background is set on the body, so this can be removed if set globally */
+  background-color: #121212; 
   min-height: 100vh;
 }
 
@@ -15,7 +17,7 @@
 .header h1 {
   font-size: 2rem;
   font-weight: 700;
-  color: #111827;
+  color: #FFFFFF; /* Brighter white for heading */
 }
 
 .addButton {
@@ -23,24 +25,28 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background-color: #10b981;
-  color: white;
+  background-color: #D4AF37; /* Gold */
+  color: #121212; /* Black text */
   border: none;
   border-radius: 0.5rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
 }
 
 .addButton:hover {
-  background-color: #059669;
+  background-color: #E6C200; /* Brighter gold */
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+  transform: translateY(-2px);
 }
 
 .tableContainer {
-  background-color: white;
+  background-color: #1E1E1E; /* Dark charcoal */
   border-radius: 0.75rem;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  border: 1px solid #333;
   overflow: hidden;
 }
 
@@ -52,33 +58,41 @@
 .table th, .table td {
   padding: 1rem 1.5rem;
   text-align: left;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #3a3a3a; /* Darker border */
+  vertical-align: middle;
 }
 
 .table th {
-  background-color: #f3f4f6;
-  color: #4b5563;
+  background-color: #121212; /* Match main background */
+  color: #a0a0a0; /* Lighter grey for headers */
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.05em;
 }
 
+.table td {
+    color: #F5F5F5; /* Soft white text */
+}
+
 .superuser, .staff {
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
-  font-weight: 500;
+  font-weight: 600; /* Bolder */
   font-size: 0.875rem;
+  display: inline-block;
 }
 
 .superuser {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: rgba(212, 175, 55, 0.15); /* Gold glow */
+  color: #D4AF37;
+  border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
 .staff {
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: rgba(160, 160, 160, 0.15); /* Grey glow */
+  color: #a0a0a0;
+  border: 1px solid rgba(160, 160, 160, 0.3);
 }
 
 .actions {
@@ -90,20 +104,20 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #6b7280;
+  color: #a0a0a0; /* Lighter grey */
   font-size: 1.25rem;
   transition: color 0.2s;
 }
 
 .actionButton:hover {
-  color: #10b981;
+  color: #D4AF37; /* Gold on hover */
 }
 
 .deleteButton:hover {
-  color: #ef4444;
+  color: #e74c3c; /* Red on hover */
 }
 
 .error {
-  color: #ef4444;
+  color: #ff6b6b; /* Brighter red */
   text-align: center;
 }

@@ -1,0 +1,100 @@
+/* Account.module.css */
+
+.container {
+    padding: 2rem;
+    max-width: 600px;
+    margin: 0 auto;
+    color: #F5F5F5;
+}
+
+.container h4 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: #FFFFFF;
+}
+
+.accountCard {
+    background-color: #1E1E1E;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.accountCard p {
+    font-size: 1.1rem;
+}
+
+.loyaltySection {
+    background-color: #121212;
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.loyaltySection h5 {
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    color: #D4AF37;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.coinBalance {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 0.5rem;
+}
+
+.coinValue {
+    color: #a0a0a0;
+    font-size: 1rem !important;
+}
+
+.buttonGroup {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.historyButton, .logoutButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.historyButton {
+    background-color: #333;
+    color: #ccc;
+    border: 1px solid #555;
+}
+
+.historyButton:hover {
+    background-color: #444;
+}
+
+.logoutButton {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.2);
+}
+
+.logoutButton:hover {
+    background-color: #e74c3c;
+    color: white;
+}

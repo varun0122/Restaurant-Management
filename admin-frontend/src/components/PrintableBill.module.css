@@ -1,11 +1,14 @@
-/* Styles for the on-screen preview of the bill */
+/* BillPrintPreview.module.css */
+
+/* --- STYLES FOR THE ON-SCREEN PREVIEW --- */
 .printContainer {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -14,34 +17,41 @@
 
 .receipt {
   width: 350px;
-  background: white;
-  padding: 20px;
+  background: #1E1E1E; /* Dark charcoal background */
+  padding: 25px;
   font-family: 'Courier New', Courier, monospace;
-  color: #000;
+  color: #F5F5F5; /* Soft white text */
+  border: 1px solid #333;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 .header {
   text-align: center;
-  margin: 0 0 10px 0;
+  margin: 0 0 15px 0;
+  color: #D4AF37; /* Gold for the header text */
+  font-size: 1.2em;
+  font-weight: bold;
 }
 
 .receipt p {
   margin: 5px 0;
+  color: #ccc; /* Lighter grey for info text */
 }
 
 .itemsTable {
   width: 100%;
   border-collapse: collapse;
-  margin: 15px 0;
+  margin: 20px 0;
 }
 
 .itemsTable th, .itemsTable td {
-  padding: 5px;
+  padding: 8px 5px; /* More padding */
   text-align: left;
 }
 
 .itemsTable th {
-  border-bottom: 1px dashed #000;
+  border-bottom: 1px dashed #555; /* Darker dashed line */
+  color: #F5F5F5;
 }
 
 .totals {
@@ -55,19 +65,24 @@
 
 .grandTotal {
   font-size: 1.2em;
-  border-top: 1px dashed #000;
-  padding-top: 5px;
-  margin-top: 5px;
+  font-weight: bold;
+  border-top: 1px dashed #555;
+  padding-top: 10px;
+  margin-top: 10px;
+  color: #D4AF37; /* Gold for the grand total */
 }
 
 .footer {
   text-align: center;
-  margin-top: 20px;
+  margin-top: 25px;
   font-style: italic;
+  color: #888; /* Dim grey for footer */
 }
+
 
 /* --- SPECIAL PRINT STYLES --- */
 /* These rules only apply when the user clicks "Print" */
+/* They are intentionally left as black on white for a standard receipt */
 @media print {
   /* Hide the entire application except for the printable bill */
   body * {
@@ -83,11 +98,23 @@
     width: 100%;
     height: 100%;
     background: none;
+    backdrop-filter: none;
   }
   .receipt {
     box-shadow: none;
     margin: 0;
     width: 100%;
     font-size: 12pt;
+    color: #000; /* Standard black text for printing */
+    background: #fff; /* Standard white background for printing */
+  }
+  .itemsTable th, .grandTotal {
+      border-color: #000; /* Ensure borders are black for print */
+  }
+  .header, .grandTotal {
+      color: #000; /* Ensure special text is black for print */
+  }
+  .receipt p, .footer {
+      color: #333; /* Standard dark grey text for print */
   }
 }

@@ -1,15 +1,19 @@
+/* Import a font that fits the elegant theme */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
-  background: linear-gradient(120deg, #fff5ec 0%, #ffe8e2 50%, #ffd6c0 100%);
+  
+  /* --- Black & Gold Theme Background --- */
+  background: radial-gradient(ellipse at center, #1c1c1c 0%, #121212 100%);
+  color: #e0e0e0; /* A soft white for default text */
 }
-
-
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',

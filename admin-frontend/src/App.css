@@ -1,12 +1,17 @@
 /* admin-frontend/src/App.css */
+
+/* Global Theme */
 body {
   margin: 0;
-  font-family: sans-serif;
-  background-color: #f4f7f6;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #0d0d0d; /* Black background */
+  color: #f1c40f; /* Gold text */
 }
 
+/* Layout */
 .app-layout {
   display: flex;
+  background-color: #0d0d0d;
 }
 
 .main-content {
@@ -14,21 +19,59 @@ body {
   margin-left: 250px; /* Same as sidebar width */
   padding: 1rem;
   transition: margin-left 0.3s ease;
+  background-color: #1a1a1a; /* Slightly lighter black for content */
+  color: #f1c40f;
+  min-height: 100vh;
+  box-shadow: inset 0 0 10px rgba(241, 196, 15, 0.2);
 }
 
+/* Buttons */
 .hamburger-button {
   display: none; /* Hidden on desktop */
   position: fixed;
   top: 15px;
   left: 15px;
   z-index: 1000;
-  background: #fff;
-  border: 1px solid #ccc;
+  background: #0d0d0d;
+  border: 2px solid #f1c40f;
   border-radius: 50%;
   width: 40px;
   height: 40px;
   font-size: 1.5rem;
   cursor: pointer;
+  color: #f1c40f;
+  transition: all 0.3s ease;
+}
+
+.hamburger-button:hover {
+  background: #f1c40f;
+  color: #0d0d0d;
+}
+
+/* Status Colors (important for Paid/Unpaid/Served/Preparing/Pending) */
+.status-paid {
+  color: #2ecc71; /* Green */
+  font-weight: bold;
+}
+
+.status-unpaid {
+  color: #e74c3c; /* Red */
+  font-weight: bold;
+}
+
+.status-preparing {
+  color: #f39c12; /* Orange/Gold */
+  font-weight: bold;
+}
+
+.status-served {
+  color: #3498db; /* Blue */
+  font-weight: bold;
+}
+
+.status-pending {
+  color: #9b59b6; /* Purple */
+  font-weight: bold;
 }
 
 /* --- Mobile Styles --- */

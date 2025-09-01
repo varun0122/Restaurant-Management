@@ -2,20 +2,23 @@ import React, { useState, useEffect } from 'react';
 import styles from './DiscountFormModal.module.css';
 
 const DiscountFormModal = ({ isOpen, onClose, onSave, discount }) => {
-  const [formData, setFormData] = useState({});
+  // Define initial state separately for clarity
+  const initialFormState = {
+    code: '',
+    discount_type: 'PERCENTAGE',
+    value: '',
+    is_active: true,
+    requires_staff_approval: false,
+    is_hidden: false, // --- 1. Add 'is_hidden' to the default state ---
+  };
+
+  const [formData, setFormData] = useState(initialFormState);
 
   useEffect(() => {
     if (discount) {
       setFormData(discount);
     } else {
-      // Default state for a new discount
-      setFormData({
-        code: '',
-        discount_type: 'PERCENTAGE',
-        value: '',
-        is_active: true,
-        requires_staff_approval: false,
-      });
+      setFormData(initialFormState);
     }
   }, [discount, isOpen]);
 
@@ -63,6 +66,11 @@ const DiscountFormModal = ({ isOpen, onClose, onSave, discount }) => {
             <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
               <input type="checkbox" id="requires_staff_approval" name="requires_staff_approval" checked={formData.requires_staff_approval || false} onChange={handleChange} />
               <label htmlFor="requires_staff_approval">Requires Staff Approval?</label>
+            </div>
+            {/* --- 2. Add the new checkbox for the 'is_hidden' field --- */}
+            <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
+              <input type="checkbox" id="is_hidden" name="is_hidden" checked={formData.is_hidden || false} onChange={handleChange} />
+              <label htmlFor="is_hidden">Hidden (Admins Only)?</label>
             </div>
           </div>
           <div className={styles.formActions}>

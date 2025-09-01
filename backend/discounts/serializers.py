@@ -15,6 +15,7 @@ class DiscountSerializer(serializers.ModelSerializer):
             'discount_type', 
             'value', 
             'is_active', 
-            'requires_staff_approval'
+            'requires_staff_approval',
+            'is_hidden'
         ]
 

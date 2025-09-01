@@ -1,21 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../api/axiosConfig'; 
 import styles from './BillPage.module.css';
+import toast from 'react-hot-toast';
 
 const BillPage = () => {
   const { billId } = useParams();
   const [bill, setBill] = useState(null);
+  const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [discountCode, setDiscountCode] = useState('');
+  const [coinsToApply, setCoinsToApply] = useState('');
+  const [isApplying, setIsApplying] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
 
-  const fetchBillDetails = async () => {
+  // Fetch bill + customer together
+  const fetchData = async () => {
     try {
-      const token = localStorage.getItem('customer_access_token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      const response = await axios.get(`http://127.0.0.1:8000/api/billing/customer/${billId}/`, config);
-      setBill(response.data);
+      const [customerRes, billRes] = await Promise.all([
+        apiClient.get('/auth/customer/me/'),
+        apiClient.get(`/billing/customer/bill/${billId}/`)
+      ]);
+      setCustomer(customerRes.data);
+      setBill(billRes.data);
     } catch (err) {
       setError('Could not fetch your bill details.');
       console.error(err);
@@ -25,50 +32,64 @@ const BillPage = () => {
   };
 
   useEffect(() => {
-    fetchBillDetails();
+    fetchData();
   }, [billId]);
 
-  const handleApplyDiscount = async () => {
-    if (!discountCode) return;
+  // Apply loyalty coins for discount
+  const handleApplyCoins = async () => {
+    const coins = parseInt(coinsToApply, 10);
+    if (isNaN(coins) || coins <= 0) {
+      toast.error("Please enter a valid number of coins.");
+      return;
+    }
+    setIsApplying(true);
     try {
-      const token = localStorage.getItem('customer_access_token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post(`http://127.0.0.1:8000/api/billing/customer/${billId}/apply-discount/`, { code: discountCode }, config);
-      fetchBillDetails(); // Refresh bill details
+      const response = await apiClient.post(`/billing/bills/${billId}/apply-coins/`, { coins });
+      setBill(response.data.bill);
+
+      // Update customer coin balance locally
+      setCustomer(prev => ({
+        ...prev,
+        loyalty_coins: (prev.loyalty_coins || 0) - coins
+      }));
+
+      toast.success(response.data.message);
+      setCoinsToApply('');
     } catch (err) {
-      alert(`Error: ${err.response?.data?.error || 'Failed to apply discount.'}`);
+      toast.error(err.response?.data?.error || "Failed to apply coins.");
+    } finally {
+      setIsApplying(false);
     }
   };
 
-  const handleRequestSpecialDiscount = async () => {
+  // Mark bill as paid & refresh customer coins
+  const handlePayBill = async () => {
+    setIsPaying(true);
     try {
-      const token = localStorage.getItem('customer_access_token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      const response = await axios.post(`http://127.0.0.1:8000/api/billing/customer/${billId}/request-special-discount/`, {}, config);
-      alert(response.data.message);
-      fetchBillDetails(); // Refresh bill details
+      const response = await apiClient.patch(`/billing/bills/${billId}/pay/`);
+      toast.success(response.data.message);
+
+      // Refetch bill + updated customer
+      await fetchData();
     } catch (err) {
-      alert(`Error: ${err.response?.data?.error || 'Failed to request discount.'}`);
+      toast.error(err.response?.data?.error || "Failed to pay bill.");
+    } finally {
+      setIsPaying(false);
     }
   };
 
+  if (loading) return <div className={styles.loader}>Loading Your Bill...</div>;
+  if (error || !bill) return <div className={styles.error}>{error || 'Bill not found.'}</div>;
 
-  if (loading) return <div className={styles.container}><h2>Loading Your Bill...</h2></div>;
-  if (error || !bill) return <div className={styles.container}><h2>{error || 'Bill not found.'}</h2></div>;
-
-  // --- FIX: Explicitly convert all values to numbers using parseFloat ---
-  const subtotal = parseFloat(bill.total_amount || 0);
-  const discount = parseFloat(bill.discount_amount || 0);
-  const totalAfterDiscount = subtotal - discount;
-  const taxes = totalAfterDiscount * 0.05; // 5% tax on the discounted amount
-  const grandTotal = totalAfterDiscount + taxes;
+  const redemptionValue = (parseInt(coinsToApply, 10) || 0) / 10; // 10 coins = ₹1
 
   return (
     <div className={styles.container}>
       <div className={styles.billCard}>
         <h3>Bill for Table {bill.table_number}</h3>
         <p className={styles.billId}>Bill ID: #{bill.id}</p>
-        
+
+        {/* Items */}
         <div className={styles.itemsSection}>
           <h4>Itemized List</h4>
           <ul className={styles.itemList}>
@@ -81,48 +102,63 @@ const BillPage = () => {
           </ul>
         </div>
 
+        {/* Totals */}
         <div className={styles.totalsSection}>
           <div className={styles.totalRow}>
             <span>Subtotal</span>
-            <span>₹{subtotal.toFixed(2)}</span>
+            <span>₹{parseFloat(bill.subtotal || bill.total_amount).toFixed(2)}</span>
           </div>
-          {bill.applied_discount && (
+          {bill.coin_discount > 0 && (
             <div className={`${styles.totalRow} ${styles.discount}`}>
-              <span>Discount ({bill.applied_discount.code})</span>
-              <span>- ₹{discount.toFixed(2)}</span>
+              <span>Coin Discount ({bill.coins_redeemed} coins)</span>
+              <span>- ₹{parseFloat(bill.coin_discount).toFixed(2)}</span>
             </div>
           )}
-           <div className={styles.totalRow}>
+          <div className={styles.totalRow}>
             <span>Taxes (5%)</span>
-            <span>₹{taxes.toFixed(2)}</span>
+            <span>₹{parseFloat(bill.tax_amount).toFixed(2)}</span>
           </div>
           <div className={`${styles.totalRow} ${styles.grandTotal}`}>
             <strong>Grand Total</strong>
-            <strong>₹{grandTotal.toFixed(2)}</strong>
+            <strong>₹{parseFloat(bill.final_amount).toFixed(2)}</strong>
           </div>
         </div>
 
-        {!bill.applied_discount && (
-          <div className={styles.discountInputSection}>
-            <input 
-              type="text" 
-              placeholder="Enter Discount Code"
-              value={discountCode}
-              onChange={(e) => setDiscountCode(e.target.value)}
-            />
-            <button onClick={handleApplyDiscount}>Apply</button>
+        {/* Loyalty Coin Redemption */}
+        {bill.coin_discount <= 0 && customer && customer.loyalty_coins > 0 && (
+          <div className={styles.loyaltySection}>
+            <h4>✨ Redeem Your Coins</h4>
+            <p>You have <strong>{customer.loyalty_coins}</strong> coins available.</p>
+            <div className={styles.redeemForm}>
+              <input
+                type="number"
+                placeholder="Enter coins to apply"
+                value={coinsToApply}
+                onChange={(e) => setCoinsToApply(e.target.value)}
+                max={customer.loyalty_coins}
+                min="0"
+              />
+              <button onClick={handleApplyCoins} disabled={isApplying}>
+                {isApplying ? 'Applying...' : 'Apply'}
+              </button>
+            </div>
+            {redemptionValue > 0 && (
+              <p className={styles.infoText}>
+                Apply for a ₹{redemptionValue.toFixed(2)} discount
+              </p>
+            )}
           </div>
         )}
 
+        {/* Payment section */}
         <div className={styles.footer}>
-          {bill.discount_request_pending ? (
-            <p className={styles.pendingMessage}>Special discount requested. Waiting for staff approval.</p>
-          ) : (
-            <button className={styles.specialDiscountButton} onClick={handleRequestSpecialDiscount}>
-              Request Student Discount
-            </button>
-          )}
-          <p>Please pay the total amount at the counter.</p>
+          <button 
+            onClick={handlePayBill} 
+            disabled={isPaying || bill.is_paid} 
+            className={styles.payButton}
+          >
+            {bill.is_paid ? "✅ Already Paid" : isPaying ? "Paying..." : "Pay & Earn Coins"}
+          </button>
           <Link to="/history" className={styles.backButton}>Back to Orders</Link>
         </div>
       </div>

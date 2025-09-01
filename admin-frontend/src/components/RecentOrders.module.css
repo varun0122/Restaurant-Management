@@ -1,10 +1,12 @@
+/* OrderHistoryTable.module.css */
+
 .container {
-  background-color: #ffffff;
+  background-color: #1E1E1E; /* Dark charcoal background */
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border: 1px solid #333;
   margin-top: 2rem;
-  /* Let the container grow but not shrink too much */
   display: flex;
   flex-direction: column;
 }
@@ -12,13 +14,27 @@
 .container h3 {
   margin-top: 0;
   margin-bottom: 1.5rem;
-  color: #333;
+  color: #F5F5F5; /* Soft white text */
 }
 
-/* This new container will handle the scrolling */
 .tableContainer {
-  max-height: 400px; /* Set a max height for the table area */
-  overflow-y: auto; /* Add a vertical scrollbar when content overflows */
+  max-height: 400px;
+  overflow-y: auto;
+  /* Custom scrollbar for dark theme */
+  scrollbar-width: thin;
+  scrollbar-color: #555 #1E1E1E;
+}
+
+.tableContainer::-webkit-scrollbar {
+    width: 8px;
+}
+.tableContainer::-webkit-scrollbar-track {
+    background: #1E1E1E;
+}
+.tableContainer::-webkit-scrollbar-thumb {
+    background-color: #555;
+    border-radius: 4px;
+    border: 2px solid #1E1E1E;
 }
 
 .table {
@@ -27,19 +43,20 @@
 }
 
 .table th, .table td {
-  padding: 0.75rem 1rem;
+  padding: 1rem; /* Increased padding */
   text-align: left;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #3a3a3a; /* Darker border */
 }
 
 .table th {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #777;
+  color: #a0a0a0; /* Lighter grey for headers */
   text-transform: uppercase;
-  position: sticky; /* Make header sticky during scroll */
+  position: sticky;
   top: 0;
-  background-color: #ffffff;
+  background-color: #1E1E1E; /* Match container background */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3); /* Add shadow to sticky header */
 }
 
 .orderRow {
@@ -48,16 +65,17 @@
 }
 
 .orderRow:hover {
-  background-color: #f9f9f9;
+  background-color: #2a2a2a; /* Slightly lighter charcoal on hover */
 }
 
 .chevronCell {
   text-align: center;
+  color: #888;
 }
 
 .itemsRow td {
   padding: 0;
-  background-color: #fcfcfc;
+  background-color: #121212; /* Match main app background for contrast */
 }
 
 .itemsList {
@@ -69,32 +87,31 @@
 .itemsList li {
   display: flex;
   justify-content: space-between;
-  padding: 0.5rem 0;
+  padding: 0.6rem 0;
   font-size: 0.9rem;
-  color: #555;
+  color: #ccc; /* Lighter grey for list items */
 }
 
 .status {
-  padding: 0.25rem 0.6rem;
+  padding: 0.25rem 0.75rem; /* More horizontal padding */
   border-radius: 12px;
   font-size: 0.8rem;
-  font-weight: 600;
-  color: white;
+  font-weight: 700;
+  color: #121212; /* Black text for contrast on gold */
+  background-color: #D4AF37; /* Gold for all statuses */
+  text-align: center;
 }
 
+/* We can use opacity to differentiate statuses instead of different colors */
 .pending {
-  background-color: #ffc107; /* Yellow */
-  color: #333;
+  opacity: 0.7;
 }
-
 .preparing {
-  background-color: #17a2b8; /* Teal */
+  opacity: 0.8;
 }
-
 .ready {
-  background-color: #007bff; /* Blue */
+  opacity: 0.9;
 }
-
 .served {
-  background-color: #28a745; /* Green */
+  opacity: 1;
 }

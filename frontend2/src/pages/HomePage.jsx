@@ -93,15 +93,18 @@ const HomePage = () => {
       <div className={styles.categorySection}>
         <h2 className={styles.sectionTitle}>Browse by Category</h2>
         <div className={styles.categoryGrid}>
-          {categories.map(category => (
-            <div key={category.id} className={styles.categoryCard} onClick={() => handleCategoryClick(category.name)}>
-              {/* We can add category images later if the model supports it */}
-              <div className={styles.categoryInfo}>
-                <h3>{category.name}</h3>
-              </div>
-            </div>
-          ))}
-        </div>
+  {categories.map(category => (
+    <div key={category.id} className={styles.categoryCard} onClick={() => handleCategoryClick(category.name)}>
+      <span style={{ fontSize: '1.8rem', marginBottom: '0.25rem' }}>
+        {category.name === 'Desserts' ? '🍰' : category.name === 'Starters' ? '🥗' : '🍽️'}
+      </span>
+      <div className={styles.categoryInfo}>
+        <h3>{category.name}</h3>
+      </div>
+    </div>
+  ))}
+</div>
+
       </div>
       
       <div className={styles.viewFullMenu}>

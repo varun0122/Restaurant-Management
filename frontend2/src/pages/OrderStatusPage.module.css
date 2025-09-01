@@ -1,3 +1,5 @@
+/* OrderHistory.module.css or OrderStatusPage.module.css */
+
 .container {
   padding: 1rem;
   max-width: 800px;
@@ -9,75 +11,95 @@
 }
 
 .section h3 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: #333;
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  color: #D4AF37; /* Gold section title */
+  text-align: center;
 }
 
 .orderCard {
-  background: #fff;
+  background: #1E1E1E; /* Dark charcoal background */
   border-radius: 8px;
-  padding: 1rem;
+  padding: 1.5rem;
   margin-bottom: 1rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  border: 1px solid #333;
+  color: #F5F5F5;
 }
 
 .pastOrder {
-  background-color: #f9f9f9;
+  background-color: #1A1A1A; /* Slightly different dark shade for past orders */
 }
 
 .cardHeader {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-weight: bold;
   margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #eee;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #3a3a3a;
 }
 
 .pastOrderBody {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #a0a0a0; /* Lighter grey for details */
 }
 
 .pastOrderBody p {
-    margin: 0;
+  margin: 0;
 }
 
 .viewBillButton {
-    padding: 0.4rem 1rem;
-    background-color: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: background-color 0.2s;
+  padding: 0.6rem 1.25rem;
+  background-color: #D4AF37; /* Gold background */
+  color: #121212; /* Black text for contrast */
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: all 0.25s ease;
+  border: none;
+  cursor: pointer;
 }
 
 .viewBillButton:hover {
-    background-color: #0056b3;
+  background-color: #E6C200; /* Brighter gold on hover */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
 }
 
-
-/* --- Progress Bar Styles --- */
+/* --- Redesigned Progress Bar Styles --- */
 .progressBar {
   display: flex;
   justify-content: space-between;
-  margin: 1rem 0;
+  margin: 2.5rem 0;
   position: relative;
 }
 
+/* This is the track behind the dots */
 .progressBar::before {
   content: '';
   position: absolute;
-  top: 10px; /* Aligns with the center of the dot */
-  left: 10%;
-  right: 10%;
-  height: 4px;
-  background: #e0e0e0;
+  top: 8px; /* Aligns with the center of the dot */
+  left: 15%;
+  right: 15%;
+  height: 2px;
+  background: #333; /* Dark grey track */
   z-index: 1;
+}
+
+/* This is the gold line that fills the track */
+.progressFill {
+    position: absolute;
+    top: 8px;
+    left: 15%;
+    height: 2px;
+    background: #D4AF37;
+    z-index: 2;
+    transition: width 0.5s ease-in-out;
 }
 
 .step {
@@ -85,32 +107,35 @@
   flex-direction: column;
   align-items: center;
   position: relative;
-  z-index: 2;
-  width: 60px; /* Give steps a width */
+  z-index: 3;
+  width: 80px; /* Give steps more width for labels */
 }
 
 .dot {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: #e0e0e0;
-  border: 4px solid #fff;
-  transition: background-color 0.3s;
+  background: #1E1E1E; /* Match card background */
+  border: 2px solid #555; /* Inactive border */
+  transition: border-color 0.5s ease;
 }
 
 .label {
-  margin-top: 0.5rem;
-  font-weight: 600;
+  margin-top: 0.75rem;
+  font-weight: 500;
   font-size: 0.8rem;
-  color: #aaa;
-  transition: color 0.3s;
+  color: #888; /* Dim grey for inactive labels */
+  transition: color 0.5s ease;
   text-align: center;
 }
 
 .step.active .dot {
-  background: #28a745;
+  border-color: #D4AF37; /* Gold border for active dot */
+  background: #D4AF37;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
 }
 
 .step.active .label {
-  color: #333;
+  color: #F5F5F5; /* Soft white for active labels */
+  font-weight: 600;
 }

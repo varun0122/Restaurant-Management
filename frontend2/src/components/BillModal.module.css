@@ -1,11 +1,13 @@
 /* BillModal.module.css */
+
 .modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.8); /* Darker backdrop */
+  backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -15,14 +17,16 @@
 
 .modalContent {
   position: relative;
-  background: white;
+  background: #1E1E1E; /* Dark charcoal background */
+  color: #F5F5F5; /* Soft white text */
   padding: 2rem;
   border-radius: 8px;
   max-width: 450px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 1px solid #333;
 }
 
 .closeButton {
@@ -34,129 +38,141 @@
   font-size: 2rem;
   cursor: pointer;
   color: #aaa;
+  transition: color 0.2s ease;
+}
+
+.closeButton:hover {
+  color: #D4AF37; /* Gold on hover */
 }
 
 .modalContent h3 {
-    margin-top: 0;
-    text-align: center;
-    font-size: 1.5rem;
+  margin-top: 0;
+  text-align: center;
+  font-size: 1.5rem;
+  color: #FFFFFF; /* Brighter white for heading */
 }
 
 .billId {
-    text-align: center;
-    color: #888;
-    margin-bottom: 1.5rem;
+  text-align: center;
+  color: #888;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
 }
 
 .itemsSection {
-    margin-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .itemsSection h4 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 0.5rem;
-    margin-bottom: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-bottom: 1px solid #3a3a3a;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .itemList {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .itemList li {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5rem 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
 }
 
 .totalsSection {
-    border-top: 1px solid #eee;
-    padding-top: 1rem;
+  border-top: 1px solid #3a3a3a;
+  padding-top: 1rem;
 }
 
 .totalRow {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5rem 0;
-    font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  font-size: 1rem;
 }
 
 .grandTotal {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-top: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  color: #D4AF37; /* Gold for the grand total */
 }
 
 .totalsSection .discount {
-  color: #27ae60;
+  color: #D4AF37; /* Gold for discount text */
 }
 
 .discountContainer {
-    padding: 1.5rem 0;
-    border-top: 1px solid #eee;
+  padding: 1.5rem 0;
+  border-top: 1px solid #3a3a3a;
 }
 
 .offersHeader {
-    background: none;
-    border: none;
-    padding: 0;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #3498db;
-    margin-bottom: 1rem;
+  background: none;
+  border: none;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #D4AF37; /* Gold for interactive text */
+  margin-bottom: 1rem;
 }
 
 .offersList {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-in-out;
-    font-size: 0.9rem;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+  font-size: 0.9rem;
 }
 
 .offersList.expanded {
-    max-height: 200px;
-    overflow-y: auto;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
-
 .offersList ul {
-    list-style: none;
-    padding-left: 0;
-    margin-top: 0.5rem;
-    border-top: 1px solid #eee;
-    padding-top: 1rem;
+  list-style: none;
+  padding-left: 0;
+  margin-top: 0.5rem;
+  border-top: 1px solid #3a3a3a;
+  padding-top: 1rem;
 }
 
 .offersList li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0;
-    color: #555;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  color: #ccc;
 }
 
 .offersList li span {
-    font-style: italic;
-    color: #e67e22;
+  font-style: italic;
+  color: #D4AF37;
 }
 
 .offerApplyButton {
-    padding: 0.25rem 0.75rem;
-    border: 1px solid #3498db;
-    background: transparent;
-    color: #3498db;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid #D4AF37;
+  background: transparent;
+  color: #D4AF37;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.offerApplyButton:hover {
+  background-color: rgba(212, 175, 55, 0.1);
 }
 
 .discountInputSection {
@@ -167,50 +183,64 @@
 .discountInputSection input {
   flex-grow: 1;
   padding: 0.75rem;
-  border: 1px solid #ccc;
+  border: 1px solid #444;
+  background-color: #121212;
+  color: #F5F5F5;
   border-radius: 4px;
 }
 
 .discountInputSection button {
   padding: 0.75rem 1.5rem;
   border: none;
-  background-color: #34495e;
-  color: white;
+  background-color: #D4AF37;
+  color: #121212;
   border-radius: 4px;
   cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+.discountInputSection button:hover {
+  background-color: #E6C200;
 }
 
 .discountApplied, .pendingMessage {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 500;
-    padding: 1rem;
-    border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+  padding: 1rem;
+  border-radius: 4px;
 }
 
 .discountApplied {
-    color: #27ae60;
-    background-color: #e9f7ef;
+  color: #D4AF37;
+  background-color: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.2);
 }
 
 .pendingMessage {
-    color: #e67e22;
-    background-color: #fdf3e6;
+  color: #e67e22; /* Keep orange for pending, it stands out well */
+  background-color: rgba(230, 126, 34, 0.1);
+  border: 1px solid rgba(230, 126, 34, 0.2);
 }
 
 .removeDiscountButton {
-    background: none;
-    border: 1px solid #e74c3c;
-    color: #e74c3c;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.8rem;
-    border-radius: 4px;
-    cursor: pointer;
+  background: none;
+  border: 1px solid #e74c3c;
+  color: #e74c3c;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.removeDiscountButton:hover {
+  background-color: rgba(231, 76, 60, 0.1);
 }
 
 .footer {
-    padding-top: 1.5rem;
-    text-align: center;
-    border-top: 1px solid #eee;
+  padding-top: 1.5rem;
+  text-align: center;
+  border-top: 1px solid #3a3a3a;
 }

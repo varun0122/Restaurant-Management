@@ -1,13 +1,17 @@
+/* ChartContainer.module.css */
+
 .chartContainer {
-  background-color: #ffffff;
+  background-color: #1E1E1E; /* Dark charcoal background */
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border: 1px solid #333; /* Subtle border */
   margin-top: 2rem;
 }
 
 .chartContainer h3 {
   margin-top: 0;
   margin-bottom: 1.5rem;
-  color: #333;
+  color: #F5F5F5; /* Soft white text for the title */
+  font-weight: 600;
 }

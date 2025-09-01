@@ -1,10 +1,13 @@
+/* Navbar.module.css */
+
 /* --- Header Styles --- */
 .header {
-  background-color: #ffffff;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: #1E1E1E; /* Dark charcoal background */
+  border-bottom: 1px solid #333; /* Subtle darker border */
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 /* --- Navbar Styles --- */
@@ -21,15 +24,20 @@
   cursor: pointer;
   padding: 0;
   font-size: 1.5rem; /* 24px */
-  color: #333;
+  color: #F5F5F5; /* Soft white for icons */
+  transition: color 0.2s ease;
+}
+
+.iconButton:hover {
+  color: #D4AF37; /* Gold on hover */
 }
 
 .title {
   font-size: 1.25rem;
-  font-weight: 600;
-  color: #333;
-  margin: 0 auto;      /* This will center the title in flex */
-  text-align: center;  /* For clean centering */
+  font-weight: 700;
+  color: #FFFFFF; /* Brighter white for the main title */
+  margin: 0 auto;
+  text-align: center;
 }
 
 .rightIcons {
@@ -40,7 +48,7 @@
 
 /* --- Search Bar Styles --- */
 .searchContainer {
-  padding: 0 1.5rem 1rem 1.5rem;
+  padding: 0 1.5rem 1.25rem 1.5rem;
 }
 
 .searchInputWrapper {
@@ -49,17 +57,21 @@
 
 .searchInput {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   padding-right: 2.5rem; /* Make space for the icon */
-  background-color: #f5f5f5;
-  border: none;
+  background-color: #121212; /* Match main dark background */
+  border: 1px solid #444; /* Darker border */
   border-radius: 8px;
   font-size: 1rem;
+  color: #F5F5F5;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
 .searchInput:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
+  border-color: #D4AF37; /* Gold border on focus */
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
 }
 
 .searchIcon {
@@ -77,14 +89,15 @@
   top: 0;
   left: 0;
   height: 100vh;
-  width: 60%;
+  width: 70%;
   max-width: 300px;
-  background-color: #ffffff;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #1E1E1E; /* Dark charcoal background */
+  box-shadow: 2px 0 15px rgba(0, 0, 0, 0.5);
   transform: translateX(-100%);
   transition: transform 0.3s ease-in-out;
   z-index: 1001;
   padding-top: 4rem;
+  border-right: 1px solid #333;
 }
 
 .sidePanel.open {
@@ -101,14 +114,15 @@
   display: block;
   padding: 1rem 1.5rem;
   font-size: 1.1rem;
-  color: #333;
+  color: #F5F5F5;
   text-decoration: none;
-  transition: background-color 0.2s;
-  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s, color 0.2s;
+  border-bottom: 1px solid #333;
 }
 
 .panelNav li a:hover {
-  background-color: #f7f7f7;
+  background-color: rgba(212, 175, 55, 0.1); /* Faint gold glow */
+  color: #D4AF37;
 }
 
 /* --- Overlay Styles --- */
@@ -118,7 +132,8 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.7); /* Darker overlay */
+  backdrop-filter: blur(4px);
   z-index: 1000;
   opacity: 0;
   visibility: hidden;
@@ -130,20 +145,24 @@
   visibility: visible;
 }
 
-
+/* --- Bottom Navigation (Redesigned) --- */
 .bottomNav {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 58px;
-  background: #fff;
-  border-top: 1px solid #eee;
+  height: 65px; /* Slightly taller for a better feel */
+  
+  /* Frosted glass effect */
+  background: rgba(30, 30, 30, 0.8); /* Semi-transparent background */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); /* For Safari */
+  
+  border-top: 1px solid rgba(255, 255, 255, 0.1); /* Lighter border for the glass effect */
   display: flex;
   justify-content: space-around;
   align-items: center;
   z-index: 2000;
-  box-shadow: 0 -1px 10px rgba(0,0,0,0.06);
 }
 
 .bottomNavLink {
@@ -151,35 +170,72 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
   justify-content: center;
-  color: #686868;
+  color: #a0a0a0; /* Grey for inactive icons */
   text-decoration: none;
-  font-size: 13px;
-  padding: 3px 0 0 0;
-  transition: color 0.16s, background 0.16s;
-  border-radius: 8px;
-  line-height: 1.1;
+  height: 100%;
+  transition: all 0.25s ease-in-out;
+  position: relative;
+  border-radius: 30px;
 }
 
-.bottomNavLink:hover {
-  background: #fff7f1;
-  color: #ff5b0b;
+.bottomNavLink.active {
+  color: #D4AF37; /* Gold for active state text and icon */
+  transform: translateY(-2px); /* Subtle lift effect */
 }
 
-.active {
-  color: #ff5b0b;
-  font-weight: 700;
-  background: #fff4e6;
+/* The pill-shaped background for the active link */
+.bottomNavLink.active::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 60%;
+    background-color: rgba(212, 175, 55, 0.15); /* Faint gold glow */
+    border-radius: 30px;
+    z-index: -1; /* Place it behind the icon and text */
 }
 
 .iconOnly {
-  font-size: 21px;
+  font-size: 24px; /* Slightly larger icon */
   margin-bottom: 3px;
   display: block;
 }
 
 .bottomLabel {
   font-size: 12px;
-  margin: 0;
+  font-weight: 500;
+  letter-spacing: 0.5px; /* Better letter spacing */
+}
+
+.bottomNavLink.active .bottomLabel {
+    font-weight: 700;
+}
+
+/* Add these new styles to your Navbar.module.css file */
+
+.cartIconWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cartBadge {
+  position: absolute;
+  top: -8px;      /* Position badge above the icon */
+  right: -8px;    /* Position badge to the right of the icon */
+  background-color: #ff4d4d; /* A bright red color */
+  color: white;
+  border-radius: 50%; /* Makes it a circle */
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  border: 1px solid white;
 }

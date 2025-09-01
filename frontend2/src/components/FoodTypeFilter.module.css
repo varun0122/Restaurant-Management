@@ -1,51 +1,43 @@
+/* FoodTypeFilter.module.css */
+
 .container {
-  padding: 0 1.5rem 1rem;
-  background-color: #ffffff;
+  padding: 0.5rem 1.5rem 1.5rem; /* Adjusted padding */
+  background-color: #121212; /* Match the main app background */
   display: flex;
   justify-content: center; /* Center the toggle switch */
 }
 
 .toggleWrapper {
   display: flex;
-  border: 1px solid #ccc;
+  border: 1px solid #444; /* Darker border */
   border-radius: 20px;
   overflow: hidden; /* This keeps the rounded corners neat */
-  background-color: #f0f0f0;
+  background-color: #2a2a2a; /* Dark charcoal background */
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5); /* Inner shadow for depth */
 }
 
 .toggleButton {
-  padding: 0.5rem 1.25rem;
+  padding: 0.6rem 1.5rem;
   font-size: 0.9rem;
   font-weight: 500;
   border: none;
   background-color: transparent;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  color: #555;
+  color: #cccccc; /* Light grey text for inactive buttons */
 }
 
-/* Add a separator line between buttons */
+/* Remove the separator line for a cleaner look in the dark theme */
 .toggleButton:not(:last-child) {
-  border-right: 1px solid #ccc;
+  border-right: none;
 }
 
 .toggleButton.active {
   font-weight: 700;
-  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+  background-color: #D4AF37; /* Rich Gold for active state */
+  color: #121212; /* Black text for high contrast on gold */
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); /* Add a subtle glow */
 }
 
-/* Specific active styles for each button */
-.toggleButton.active.veg {
-  background-color: #28a745; /* Green */
-  color: white;
-}
-
-.toggleButton.active.nonVeg {
-  background-color: #dc3545; /* Red */
-  color: white;
-}
-
-.toggleButton.active:not(.veg):not(.nonVeg) {
-  background-color: #007bff; /* Blue for 'All' */
-  color: white;
-}
+/* We no longer need specific colors for veg/non-veg to maintain the theme */
+/* The single gold active state is cleaner and more elegant */

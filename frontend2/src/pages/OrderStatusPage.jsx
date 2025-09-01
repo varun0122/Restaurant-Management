@@ -4,6 +4,7 @@ import axios from 'axios';
 import styles from './OrderStatusPage.module.css';
 import BillModal from '../components/BillModal';
 
+// This is a helper component to show the visual status tracker. No changes needed here.
 const StatusTracker = ({ status }) => {
   const statuses = ['Pending', 'Preparing', 'Ready'];
   const statusIndex = statuses.indexOf(status);
@@ -20,6 +21,7 @@ const StatusTracker = ({ status }) => {
 };
 
 const OrderStatusPage = () => {
+  // State management for orders, bills, loading, and errors
   const [inKitchenOrders, setInKitchenOrders] = useState([]);
   const [unpaidBills, setUnpaidBills] = useState([]);
   const [pastOrders, setPastOrders] = useState([]);
@@ -27,7 +29,7 @@ const OrderStatusPage = () => {
   const [error, setError] = useState('');
   const [selectedBillId, setSelectedBillId] = useState(null);
 
-  // Fetch customer orders and bills data
+  // Main function to fetch all customer-related data from the API
   const fetchCustomerData = async () => {
     try {
       const token = localStorage.getItem('customer_access_token');
@@ -39,34 +41,41 @@ const OrderStatusPage = () => {
 
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
+      // Fetch order history and unpaid bills concurrently for better performance
       const [historyResponse, billsResponse] = await Promise.all([
         axios.get('http://127.0.0.1:8000/api/orders/my-history/', config),
         axios.get('http://127.0.0.1:8000/api/billing/myunpaid/', config),
       ]);
 
       const allOrders = historyResponse.data || [];
+      
+      // Update state with the fetched data
       setUnpaidBills(billsResponse.data || []);
       setInKitchenOrders(allOrders.filter(o => ['Pending', 'Preparing', 'Ready'].includes(o.status)));
       setPastOrders(allOrders.filter(o =>
         (o.bill && o.bill.is_paid) ||
         !['Pending', 'Preparing', 'Ready', 'Served'].includes(o.status)
       ));
-      setError('');
+      setError(''); // Clear any previous errors
     } catch (err) {
-      setError('Could not load your order data.');
+      setError('Could not load your order data. Please try again.');
       console.error("Failed to fetch data", err);
     } finally {
-      setLoading(false);
+      setLoading(false); // Stop loading indicator regardless of outcome
     }
   };
 
+  // useEffect hook to fetch data on component mount and set up polling
   useEffect(() => {
-    fetchCustomerData();
-    const interval = setInterval(fetchCustomerData, 15000);
+    fetchCustomerData(); // Fetch data initially
+    const interval = setInterval(fetchCustomerData, 15000); // Refresh every 15 seconds
+    
+    // Cleanup function to clear the interval when the component unmounts
     return () => clearInterval(interval);
   }, []);
 
 
+  // Conditional rendering for loading and error states
   if (loading) return <div className={styles.container}><h4>Loading Your Orders...</h4></div>;
   if (error) return <div className={styles.container}><h4>{error}</h4></div>;
 
@@ -96,12 +105,14 @@ const OrderStatusPage = () => {
           <h3>Ready to Pay</h3>
           {unpaidBills.length > 0 ? (
             unpaidBills.map(bill => {
-              // Calculate amount after discount
-              const amountAfterDiscount = (bill.total_amount || 0) - (bill.discount_amount || 0);
-              // Calculate 5% tax
-              const taxes = amountAfterDiscount * 0.05;
-              // Grand total
-              const totalAmount = amountAfterDiscount + taxes;
+              // --- THIS IS THE CORRECTED CALCULATION ---
+              // It's safer to use the backend-calculated final amount if available.
+              // If not, we manually calculate, ensuring we subtract BOTH types of discounts.
+              const totalAmount = bill.final_amount ?? (() => {
+                  const subtotalAfterDiscounts = (bill.total_amount || 0) - (bill.discount_amount || 0) - (bill.coin_discount || 0);
+                  const taxes = subtotalAfterDiscounts > 0 ? subtotalAfterDiscounts * 0.05 : 0;
+                  return subtotalAfterDiscounts + taxes;
+              })();
 
               return (
                 <div key={bill.id} className={styles.orderCard}>
@@ -151,11 +162,11 @@ const OrderStatusPage = () => {
         <Link to="/menu" className={styles.menuButton}>Back to Menu</Link>
       </div>
 
-      {/* Pass fetchCustomerData to BillModal to refresh data, if needed */}
+      {/* BillModal component with the correct `onUpdate` prop */}
       <BillModal
         billId={selectedBillId}
         onClose={() => setSelectedBillId(null)}
-        onBillUpdate={fetchCustomerData}
+        onUpdate={fetchCustomerData}
       />
     </>
   );

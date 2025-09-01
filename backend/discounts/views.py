@@ -1,28 +1,36 @@
 # discounts/views.py
 
 from rest_framework import viewsets, mixins
-from rest_framework.permissions import IsAdminUser, AllowAny
+from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated # Import IsAuthenticated
 from .models import Discount
 from .serializers import DiscountSerializer
 
-# ViewSet for Admins to manage all discounts (Create, Read, Update, Delete)
+# 1. Admin View (No Change)
+# Admins can see and manage ALL discounts, including hidden ones.
 class DiscountViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows discount codes to be viewed or edited.
-    Only accessible by admin users.
-    """
     queryset = Discount.objects.all().order_by('code')
     serializer_class = DiscountSerializer
     permission_classes = [IsAdminUser]
 
-
-# --- NEW: ViewSet for Customers to see public offers ---
-# This is a read-only view that only lists active, public discounts.
+# 2. Public View (Updated)
+# Customers see only active, public, non-hidden offers.
 class PublicDiscountsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
-    """
-    API endpoint that lists all active, public-facing discounts.
-    Accessible by anyone.
-    """
-    queryset = Discount.objects.filter(is_active=True)
+    queryset = Discount.objects.filter(
+        is_active=True, 
+        requires_staff_approval=False, 
+        is_hidden=False  # <-- Add this condition
+    )
     serializer_class = DiscountSerializer
-    permission_classes = [AllowAny] # Open to the public
+    permission_classes = [AllowAny]
+
+# 3. Staff View (Optional but Recommended)
+# Logged-in staff can see all active, non-hidden discounts they can apply.
+# This would require your staff to have user accounts.
+class StaffDiscountsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Discount.objects.filter(
+        is_active=True,
+        is_hidden=False  # <-- Staff cannot see the admin's secret discounts
+    )
+    serializer_class = DiscountSerializer
+    # This assumes staff members are logged in. You could create a more specific IsStaff permission.
+    permission_classes = [IsAuthenticated]

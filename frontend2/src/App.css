@@ -1,6 +1,25 @@
+/* Import a font that fits the elegant theme */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif; /* A clean, modern font */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* --- Black & Gold Theme Background --- */
+  /* Using a radial gradient adds a subtle depth, slightly lighter in the center */
+  background: radial-gradient(ellipse at center, #1c1c1c 0%, #121212 100%);
+  color: #e0e0e0; /* A soft white for default text */
+  min-height: 100vh;
+}
+
+/* Ensure the main app container is set up correctly */
 .App {
   text-align: center;
 }
+
+/* --- Default Create React App styles (can be removed if unused) --- */
 
 .App-logo {
   height: 40vmin;
@@ -14,6 +33,8 @@
 }
 
 .App-header {
+  /* These default styles are no longer needed for your layout but are kept here for reference */
+  /*
   background-color: #282c34;
   min-height: 100vh;
   display: flex;
@@ -22,10 +43,11 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+  */
 }
 
 .App-link {
-  color: #61dafb;
+  color: #FFD700; /* Use a gold color for links to match the theme */
 }
 
 @keyframes App-logo-spin {
@@ -36,4 +58,3 @@
     transform: rotate(360deg);
   }
 }
-

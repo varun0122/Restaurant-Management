@@ -1,26 +1,29 @@
+/* TableManagementPage.module.css */
+
 .container {
   padding: 2rem;
-  background-color: #f9fafb;
+  /* The main background is set on the body, so no need to set it here */
 }
 
 .container h4 {
   font-size: 1.8rem;
   margin-bottom: 0.5rem;
-  color: #111827;
+  color: #FFFFFF; /* Brighter white for heading */
 }
 
 .container p {
   margin-bottom: 2rem;
-  color: #6b7280;
+  color: #a0a0a0; /* Lighter grey for subtitle */
 }
 
 /* --- New Styles for Add Table Section --- */
 .addTableSection {
-    background-color: white;
+    background-color: #1E1E1E; /* Dark charcoal */
     padding: 2rem;
     border-radius: 0.75rem;
     margin-bottom: 2rem;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    border: 1px solid #333;
 }
 
 .addTableForm {
@@ -31,37 +34,47 @@
 
 .addTableInput {
     flex-grow: 1;
-    padding: 0.75rem;
-    border: 1px solid #d1d5db;
+    padding: 0.85rem;
+    border: 1px solid #444;
     border-radius: 0.5rem;
     font-size: 1rem;
+    background-color: #121212;
+    color: #F5F5F5;
+    transition: border-color 0.2s ease;
+}
+
+.addTableInput:focus {
+    outline: none;
+    border-color: #D4AF37;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
 }
 
 .addButton {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    background-color: #10b981;
-    color: white;
+    padding: 0.85rem 1.5rem;
+    background-color: #D4AF37; /* Gold */
+    color: #121212; /* Black text */
     border: none;
     border-radius: 0.5rem;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
 }
 
 .addButton:hover {
-    background-color: #059669;
+    background-color: #E6C200; /* Brighter gold */
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
 }
 
 .divider {
     height: 1px;
-    background-color: #e5e7eb;
+    background-color: #3a3a3a; /* Darker divider */
     margin: 2rem 0;
+    border: none;
 }
-
 
 .grid {
   display: grid;
@@ -70,35 +83,45 @@
 }
 
 .card {
-  background: #fff;
+  background: #1E1E1E;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  border: 1px solid #333;
   padding: 1.5rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    border-color: #D4AF37;
 }
 
 .card h5 {
   margin-top: 0;
   margin-bottom: 1rem;
   font-size: 1.2rem;
+  color: #F5F5F5;
 }
 
 .qrImage {
   width: 100%;
   max-width: 180px;
   height: auto;
-  border: 1px solid #eee;
+  border: 4px solid #F5F5F5; /* Give the QR code a white border to help with scanning */
   border-radius: 4px;
   margin-bottom: 1rem;
   cursor: pointer;
+  background-color: white; /* Ensure QR background is white */
 }
 
 .buttonGroup {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem; /* Increased gap */
   width: 100%;
   margin-top: auto;
 }
@@ -110,9 +133,9 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.6rem;
-  border: 1px solid #ccc;
-  background-color: #f9f9f9;
-  color: #333;
+  border: 1px solid #555;
+  background-color: #333;
+  color: #ccc;
   border-radius: 4px;
   text-decoration: none;
   font-weight: 600;
@@ -122,18 +145,18 @@
 
 .actionButton:hover {
   border-color: #888;
-  background-color: #f0f0f0;
+  background-color: #444;
 }
 
 .downloadButton {
-  border-color: #10b981;
-  background-color: #10b981;
-  color: #fff;
+  border-color: #D4AF37;
+  background-color: #D4AF37;
+  color: #121212;
 }
 
 .downloadButton:hover {
-  background-color: #059669;
-  border-color: #059669;
+  background-color: #E6C200;
+  border-color: #E6C200;
 }
 
 /* --- Modal Styles --- */
@@ -143,7 +166,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -153,7 +177,7 @@
 
 .modalContent {
   position: relative;
-  background: white;
+  background: white; /* Keep the QR code background white for scannability */
   padding: 1rem;
   border-radius: 8px;
   max-width: 90vw;
@@ -172,12 +196,16 @@
   position: absolute;
   top: -15px;
   right: -15px;
-  background: white;
-  border: 2px solid #333;
+  background: #1E1E1E;
+  border: 2px solid #F5F5F5;
+  color: #F5F5F5;
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
+  width: 34px; /* Larger click area */
+  height: 34px;
   font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

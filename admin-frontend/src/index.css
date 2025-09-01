@@ -3,9 +3,10 @@
   line-height: 1.5;
   font-weight: 400;
 
+  /* Black & Gold theme base */
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: rgba(255, 215, 0, 0.9); /* gold text */
+  background-color: #121212; /* deep black */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -15,11 +16,11 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+  color: #ffd700; /* gold */
+  text-decoration: none;
 }
 a:hover {
-  color: #535bf2;
+  color: #ffea70; /* lighter gold */
 }
 
 body {
@@ -28,41 +29,87 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background: #0a0a0a; /* darker black */
 }
 
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+  color: #ffd700; /* gold heading */
 }
 
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid #ffd700;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
   background-color: #1a1a1a;
+  color: #ffd700;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: #ffea70;
+  background-color: #333;
 }
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+/* --- STATUS COLORS --- */
+.status-unpaid {
+  background: #ff4d4d; /* red */
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.status-paid {
+  background: #28a745; /* green */
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.status-preparing {
+  background: #ffc107; /* yellow */
+  color: black;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.status-pending {
+  background: #17a2b8; /* blue */
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.status-served {
+  background: #6f42c1; /* purple */
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* Light theme fallback */
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
     background-color: #ffffff;
   }
+  a {
+    color: #b8860b;
+  }
   a:hover {
-    color: #747bff;
+    color: #daa520;
   }
   button {
     background-color: #f9f9f9;
+    color: #b8860b;
+    border-color: #b8860b;
   }
 }

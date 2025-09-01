@@ -6,7 +6,7 @@ const AddItemModal = ({ dish, cart, setCart, onClose }) => {
   const [quantity, setQuantity] = useState(existingItem ? existingItem.quantity : 1);
 
   useEffect(() => {
-    // Ensure quantity is at least 1 when modal opens for a new item
+    // Reset quantity to 1 if modal opens for a new dish
     if (!existingItem) {
       setQuantity(1);
     }
@@ -19,27 +19,31 @@ const AddItemModal = ({ dish, cart, setCart, onClose }) => {
   };
 
   const handleAddToCart = () => {
-    let updatedCart = [...cart];
+    const updatedCart = [...cart];
     const index = updatedCart.findIndex(item => item.id === dish.id);
 
     if (index > -1) {
-      // Update quantity if item already exists
-      updatedCart[index] = { ...updatedCart[index], quantity: quantity };
+      // Update existing dish quantity
+      updatedCart[index] = { ...updatedCart[index], quantity };
     } else {
-      // Add new item if it doesn't
-      updatedCart.push({ ...dish, quantity: quantity });
+      // Add new dish with quantity
+      updatedCart.push({ ...dish, quantity });
     }
-    
+
     setCart(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
-    onClose(); // Close the modal after adding
+    onClose();
   };
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeButton} onClick={onClose}>&times;</button>
-        <img src={`http://127.0.0.1:8000${dish.image_url}`} alt={dish.name} className={styles.dishImage} />
+        <button className={styles.closeButton} onClick={onClose} aria-label="Close modal">&times;</button>
+        <img
+          src={`http://127.0.0.1:8000${dish.image_url}`}
+          alt={dish.name}
+          className={styles.dishImage}
+        />
         <div className={styles.details}>
           <h4>{dish.name}</h4>
           <p className={styles.description}>{dish.description}</p>
@@ -47,9 +51,9 @@ const AddItemModal = ({ dish, cart, setCart, onClose }) => {
         </div>
         <div className={styles.actions}>
           <div className={styles.quantitySelector}>
-            <button onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1}>-</button>
+            <button onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1} aria-label="Decrease quantity">−</button>
             <span>{quantity}</span>
-            <button onClick={() => handleQuantityChange(1)}>+</button>
+            <button onClick={() => handleQuantityChange(1)} aria-label="Increase quantity">+</button>
           </div>
           <button className={styles.addButton} onClick={handleAddToCart}>
             Add Item - ₹{(dish.price * quantity).toFixed(2)}

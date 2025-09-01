@@ -2,26 +2,18 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from './LoginModal.module.css';
 
-const LoginModal = ({ isOpen, onClose, onLoginSuccess, tableNumber }) => {
+// REMOVED: The `isOpen` prop is no longer needed. The parent (App.jsx) handles visibility.
+const LoginModal = ({ onClose, onLoginSuccess, tableNumber }) => {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Reset the form when the modal is opened or closed
-  useEffect(() => {
-    if (!isOpen) {
-      setPhone('');
-      setOtp('');
-      setStep(1);
-      setError('');
-    }
-  }, [isOpen]);
+  // REMOVED: The useEffect that depended on `isOpen` is no longer needed.
+  // React will reset the state automatically when the component is un-mounted and re-mounted.
 
-  if (!isOpen) {
-    return null;
-  }
+  // REMOVED: The `if (!isOpen) { return null; }` check. This was the line causing the modal to be invisible.
 
   const sendOTP = async () => {
     if (!phone) {
@@ -35,6 +27,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess, tableNumber }) => {
         phone_number: phone,
       });
       setStep(2);
+      // You can remove this alert if you want, it was for development.
       alert('OTP sent! (Check your backend terminal for the OTP during development)');
     } catch (err) {
       setError('Failed to send OTP. Please try again.');
@@ -60,11 +53,9 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess, tableNumber }) => {
       const { access, refresh, customer } = res.data;
       localStorage.setItem('customer_access_token', access);
       localStorage.setItem('customer_refresh_token', refresh);
-      
-      // --- FIX: Add the login timestamp ---
       localStorage.setItem('customer_login_timestamp', Date.now());
       
-      onLoginSuccess(customer);
+      onLoginSuccess(customer); // This will now correctly call the function in App.jsx
     } catch (err) {
       setError('Invalid OTP. Please try again.');
       console.error(err);
@@ -73,6 +64,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess, tableNumber }) => {
     }
   };
 
+  // The rest of the JSX is perfect and needs no changes.
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>

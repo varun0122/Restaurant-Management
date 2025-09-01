@@ -1,7 +1,9 @@
 /* MenuManagementPage.module.css */
+
 .container {
   padding: 2rem;
-  background-color: #f9fafb;
+  /* The main dark background is set on the body, so this can be removed if set globally */
+  background-color: #121212; 
   min-height: 100vh;
 }
 
@@ -15,7 +17,7 @@
 .header h1, .header h2 {
   font-size: 2rem;
   font-weight: 700;
-  color: #111827;
+  color: #FFFFFF; /* Brighter white for heading */
 }
 
 .dishHeader {
@@ -23,38 +25,44 @@
   margin-bottom: 2rem;
 }
 
-/* --- NEW: Styles for the group of header buttons --- */
 .headerActions {
-    display: flex;
-    gap: 1rem;
+  display: flex;
+  gap: 1rem;
 }
 
-.addButton {
+.addButton, .secondaryButton {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background-color: #10b981;
-  color: white;
   border: none;
   border-radius: 0.5rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+}
+
+.addButton {
+  background-color: #D4AF37; /* Gold */
+  color: #121212; /* Black text */
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
 }
 
 .addButton:hover {
-  background-color: #059669;
+  background-color: #E6C200; /* Brighter gold */
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+  transform: translateY(-2px);
 }
 
-/* --- NEW: Style for secondary buttons like "Download Sample" --- */
 .secondaryButton {
-    background-color: #6b7280;
+  background-color: #333; /* Dark grey */
+  color: #ccc;
+  border: 1px solid #555;
 }
 
 .secondaryButton:hover {
-    background-color: #4b5563;
+  background-color: #444;
 }
 
 .categoryGrid {
@@ -65,20 +73,23 @@
 }
 
 .categoryCard {
-  background-color: white;
+  background-color: #1E1E1E; /* Dark charcoal */
   padding: 1rem 1.5rem;
   border-radius: 0.75rem;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,0.3);
+  border: 1px solid #333;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-weight: 500;
+  color: #F5F5F5;
 }
 
 .tableContainer {
-  background-color: white;
+  background-color: #1E1E1E;
   border-radius: 0.75rem;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  border: 1px solid #333;
   overflow: hidden;
 }
 
@@ -90,16 +101,21 @@
 .table th, .table td {
   padding: 1rem 1.5rem;
   text-align: left;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #3a3a3a;
+  vertical-align: middle;
 }
 
 .table th {
-  background-color: #f3f4f6;
-  color: #4b5563;
+  background-color: #121212;
+  color: #a0a0a0;
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.05em;
+}
+
+.table td {
+    color: #F5F5F5;
 }
 
 .dishImage {
@@ -112,18 +128,21 @@
 .available, .unavailable {
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
-  font-weight: 500;
+  font-weight: 600; /* Bolder */
   font-size: 0.875rem;
+  display: inline-block;
 }
 
 .available {
-  background-color: #d1fae5;
-  color: #065f46;
+  background-color: rgba(39, 174, 96, 0.15);
+  color: #27ae60;
+  border: 1px solid rgba(39, 174, 96, 0.3);
 }
 
 .unavailable {
-  background-color: #fee2e2;
-  color: #991b1b;
+  background-color: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.2);
 }
 
 .actions {
@@ -135,20 +154,20 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #6b7280;
+  color: #a0a0a0;
   font-size: 1.25rem;
   transition: color 0.2s;
 }
 
 .actionButton:hover {
-  color: #10b981;
+  color: #D4AF37;
 }
 
 .deleteButton:hover {
-  color: #ef4444;
+  color: #e74c3c;
 }
 
 .error {
-  color: #ef4444;
+  color: #ff6b6b;
   text-align: center;
 }

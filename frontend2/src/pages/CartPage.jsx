@@ -1,134 +1,101 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import LoginModal from '../components/LoginModal';
+import styles from './CartPage.module.css'; // Create this CSS file for styling
+import apiClient from '../api/axiosConfig';
+import toast from 'react-hot-toast';
 
-const CartPage = ({ cart, setCart, onOrderPlaced, onLogin }) => {
+// The component now expects `customer` and `requestLogin` from App.jsx
+const CartPage = ({ cart, setCart, customer, requestLogin, onOrderPlaced }) => {
   const navigate = useNavigate();
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+  // REMOVED: No more local state for the login modal
+  // const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const updateQuantity = (dishId, newQty) => {
-    let updated = [...cart];
+    let updatedCart;
     if (newQty < 1) {
-      updated = updated.filter(item => item.id !== dishId);
+      updatedCart = cart.filter(item => item.id !== dishId);
     } else {
-      const index = updated.findIndex(item => item.id === dishId);
-      if (index !== -1) {
-        updated[index].quantity = newQty;
-      }
+      updatedCart = cart.map(item => 
+        item.id === dishId ? { ...item, quantity: newQty } : item
+      );
     }
-    setCart(updated);
-    localStorage.setItem("cart", JSON.stringify(updated));
+    setCart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
   };
-
-  const executePlaceOrder = async (loggedInCustomer) => {
-    const tableNumber = localStorage.getItem('tableNumber');
-    if (!tableNumber) {
-        alert("Error: Table number not found. Please scan a QR code again.");
-        return;
-    }
-
-    const items_data = cart.map(item => ({
-      dish_id: item.id,
-      quantity: item.quantity,
-    }));
-
-    // --- FIX: Get the authentication token from localStorage ---
-    const token = localStorage.getItem('customer_access_token');
-    if (!token) {
-        alert("Authentication error. Please log in again.");
-        setIsLoginModalOpen(true);
-        return;
-    }
-
-    const config = {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    };
-
-    try {
-      const response = await axios.post('http://127.0.0.1:8000/api/orders/place/', {
-        customer_id: loggedInCustomer.id,
-        items: items_data,
-        table_number: parseInt(tableNumber, 10),
-      }, config); // <-- Pass the config with the token here
-      
-      alert("✅ Order placed successfully!");
-      
-      setCart([]);
-      localStorage.removeItem("cart");
-      onOrderPlaced();
-
-      navigate(`/order-status/${response.data.id}`);
-
-    } catch (err) {
-      console.error("Order placement failed:", err.response?.data || err.message);
-      alert("❌ Failed to place order. Please try again.");
-    }
-  };
-
-  const handlePlaceOrderClick = () => {
-    const customer = JSON.parse(localStorage.getItem('customer'));
+  
+  const handlePlaceOrderClick = async () => {
+    if (!customer) {
+    console.log("⚠️ Not logged in, opening login modal...");
+    requestLogin();   // opens login modal from App.jsx
+    return;           // prevent API call
+  }
+    // UPDATED: Check the `customer` prop instead of localStorage
     if (customer) {
-      executePlaceOrder(customer);
-    } else {
-      setIsLoginModalOpen(true);
-    }
-  };
+      // If logged in, execute the order
+      const tableNumber = localStorage.getItem('tableNumber');
+      if (!tableNumber) {
+        toast.error("Table number not found. Please scan a QR code again.");
+        return;
+      }
 
-  const handleLoginSuccess = (loggedInCustomer) => {
-    localStorage.setItem('customer', JSON.stringify(loggedInCustomer));
-    if(onLogin) {
-      onLogin(loggedInCustomer);
+      const orderData = {
+        items: cart.map(item => ({ dish: item.id, quantity: item.quantity })),
+        table_number: parseInt(tableNumber, 10),
+      };
+
+      try {
+        const response = await apiClient.post('/orders/place/', orderData);
+        toast.success("✅ Order placed successfully!");
+        setCart([]);
+        localStorage.removeItem("cart");
+        if(onOrderPlaced) onOrderPlaced();
+        navigate(`/order-status/${response.data.id}`);
+      } catch (err) {
+        console.error("Order placement failed:", err.response?.data || err.message);
+        toast.error("❌ Failed to place order. Please try again.");
+      }
+    } else {
+      // If not logged in, call the global login function from App.jsx
+      requestLogin();
     }
-    setIsLoginModalOpen(false);
-    executePlaceOrder(loggedInCustomer);
   };
+  
+  // REMOVED: handleLoginSuccess is no longer needed here. App.jsx handles it.
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
-    <>
-      <div className="container mt-4">
-        <h4>Your Cart</h4>
-        {cart.length === 0 ? (
-          <p>Your cart is empty.</p>
-        ) : (
-          <>
-            {cart.map(item => (
-              <div key={item.id} className="d-flex justify-content-between align-items-center border-bottom py-2">
-                <div>
-                  <h6>{item.name}</h6>
-                  <p className="mb-0">₹{item.price} × {item.quantity}</p>
-                </div>
-                <div>
-                  <button className="btn btn-sm btn-secondary me-1" onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
-                  <span className="mx-1">{item.quantity}</span>
-                  <button className="btn btn-sm btn-secondary" onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
-                </div>
+    <div className={styles.container}>
+      <h4>Your Cart</h4>
+      {cart.length === 0 ? (
+        <p>Your cart is empty.</p>
+      ) : (
+        <>
+          {cart.map(item => (
+            <div key={item.id} className={styles.cartItem}>
+              <div>
+                <h6>{item.name}</h6>
+                <p className={styles.price}>₹{item.price} × {item.quantity}</p>
               </div>
-            ))}
-
-            <div className="mt-3 d-flex justify-content-between">
-              <strong>Total</strong>
-              <strong>₹{total.toFixed(2)}</strong>
+              <div className={styles.quantityControls}>
+                <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
+                <span>{item.quantity}</span>
+                <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
+              </div>
             </div>
-
-            <button className="btn btn-success w-100 mt-3" onClick={handlePlaceOrderClick}>
-              Place Order
-            </button>
-          </>
-        )}
-      </div>
-
-      <LoginModal 
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        onLoginSuccess={handleLoginSuccess}
-        tableNumber={localStorage.getItem('tableNumber')}
-      />
-    </>
+          ))}
+          <div className={styles.total}>
+            <strong>Total</strong>
+            <strong>₹{total.toFixed(2)}</strong>
+          </div>
+          <button className={styles.placeOrderButton} onClick={handlePlaceOrderClick}>
+            {customer ? 'Place Order' : 'Login to Place Order'}
+          </button>
+        </>
+      )}
+      {/* REMOVED: The local <LoginModal /> is no longer here. */}
+    </div>
   );
 };
 
