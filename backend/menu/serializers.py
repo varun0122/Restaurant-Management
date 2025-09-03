@@ -45,4 +45,5 @@ class DishWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dish
         # We include all fields that should be editable by the admin.
-        fields = ['name', 'description', 'price', 'is_special', 'food_type', 'category', 'image']
+        fields = ['name', 'description', 'price','is_special',
+                   'food_type', 'category', 'image','is_available']

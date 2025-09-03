@@ -1,9 +1,26 @@
-/* MenuManagementPage.module.css */
+:root {
+  --bg-main: #18191b;
+  --bg-secondary: #232427;
+  --bg-table-header: #232427;
+  --color-primary: #fff;
+  --color-secondary: #b3b3b3;
+  --accent-gold: #D4AF37;
+  --accent-green: #27ae60;
+  --accent-red: #e74c3c;
+  --border: #28292a;
+  --row-hover: rgba(212, 175, 55, 0.06);
+}
+
+body {
+  background: var(--bg-main);
+  color: var(--color-primary);
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  min-height: 100vh;
+}
 
 .container {
   padding: 2rem;
-  /* The main dark background is set on the body, so this can be removed if set globally */
-  background-color: #121212; 
   min-height: 100vh;
 }
 
@@ -11,13 +28,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .header h1, .header h2 {
   font-size: 2rem;
   font-weight: 700;
-  color: #FFFFFF; /* Brighter white for heading */
+  color: var(--color-primary);
+  margin: 0;
 }
 
 .dishHeader {
@@ -40,56 +58,56 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
 .addButton {
-  background-color: #D4AF37; /* Gold */
-  color: #121212; /* Black text */
-  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+  background-color: var(--accent-gold);
+  color: var(--bg-main);
+  box-shadow: 0 4px 12px rgba(212,175,55, 0.15);
 }
 
 .addButton:hover {
-  background-color: #E6C200; /* Brighter gold */
-  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+  background-color: #e5c443;
+  box-shadow: 0 8px 20px rgba(212,175,55, 0.22);
   transform: translateY(-2px);
 }
 
 .secondaryButton {
-  background-color: #333; /* Dark grey */
-  color: #ccc;
-  border: 1px solid #555;
+  background-color: var(--bg-secondary);
+  color: var(--color-secondary);
+  border: 1px solid var(--border);
 }
 
 .secondaryButton:hover {
-  background-color: #444;
+  background-color: #26282b;
 }
 
 .categoryGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.2rem;
   margin-bottom: 2rem;
 }
 
 .categoryCard {
-  background-color: #1E1E1E; /* Dark charcoal */
+  background: var(--bg-secondary);
   padding: 1rem 1.5rem;
   border-radius: 0.75rem;
-  box-shadow: 0 1px 3px 0 rgba(0,0,0,0.3);
-  border: 1px solid #333;
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,0.25);
+  border: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-weight: 500;
-  color: #F5F5F5;
+  color: var(--color-primary);
 }
 
 .tableContainer {
-  background-color: #1E1E1E;
+  background: var(--bg-secondary);
   border-radius: 0.75rem;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  border: 1px solid #333;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  border: 1px solid var(--border);
   overflow: hidden;
 }
 
@@ -100,22 +118,27 @@
 
 .table th, .table td {
   padding: 1rem 1.5rem;
-  text-align: left;
-  border-bottom: 1px solid #3a3a3a;
+  border-bottom: 1px solid #2c2c2c;
   vertical-align: middle;
+  text-align: left;
 }
 
 .table th {
-  background-color: #121212;
-  color: #a0a0a0;
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.75rem;
+  background: var(--bg-table-header);
+  color: var(--color-secondary);
+  font-size: 0.83rem;
   letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-bottom: 2px solid var(--accent-gold);
+}
+
+.table tr:hover:not(.selectedRow) {
+  background: var(--row-hover);
 }
 
 .table td {
-    color: #F5F5F5;
+  color: var(--color-primary);
 }
 
 .dishImage {
@@ -123,26 +146,27 @@
   height: 60px;
   object-fit: cover;
   border-radius: 0.5rem;
+  border: 1px solid #242425;
 }
 
 .available, .unavailable {
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
-  font-weight: 600; /* Bolder */
-  font-size: 0.875rem;
+  font-weight: 600;
+  font-size: 0.9rem;
   display: inline-block;
 }
 
 .available {
-  background-color: rgba(39, 174, 96, 0.15);
-  color: #27ae60;
-  border: 1px solid rgba(39, 174, 96, 0.3);
+  background: rgba(39,174,96,0.13);
+  color: var(--accent-green);
+  border: 1px solid rgba(39,174,96,0.35);
 }
 
 .unavailable {
-  background-color: rgba(231, 76, 60, 0.1);
-  color: #e74c3c;
-  border: 1px solid rgba(231, 76, 60, 0.2);
+  background: rgba(231,76,60,0.14);
+  color: var(--accent-red);
+  border: 1px solid rgba(231,76,60,0.22);
 }
 
 .actions {
@@ -154,20 +178,133 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #a0a0a0;
+  color: var(--color-secondary);
   font-size: 1.25rem;
-  transition: color 0.2s;
+  transition: color 0.18s;
 }
 
 .actionButton:hover {
-  color: #D4AF37;
+  color: var(--accent-gold);
 }
 
 .deleteButton:hover {
-  color: #e74c3c;
+  color: var(--accent-red);
 }
 
 .error {
   color: #ff6b6b;
   text-align: center;
+}
+
+.checkboxCell {
+  width: 20px;
+  text-align: center;
+}
+
+.selectedRow {
+  background: rgba(212,175,55, 0.10) !important;
+}
+
+.selectedRow td {
+  border-bottom-color: rgba(212,175,55, 0.16);
+}
+
+.availableToggle,
+.unavailableToggle {
+  border: none;
+  padding: 0.37rem 1rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.88rem;
+  min-width: 60px;
+  transition: box-shadow 0.2s, transform 0.17s;
+}
+
+.availableToggle {
+  background: rgba(39,174,96,0.16);
+  color: var(--accent-green);
+}
+
+.unavailableToggle {
+  background: rgba(231,76,60,0.20);
+  color: var(--accent-red);
+}
+
+.availableToggle:hover,
+.unavailableToggle:hover {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.30);
+  transform: scale(1.04);
+}
+
+.bulkActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  margin-bottom: 20px;
+  animation: fadeIn 0.3s cubic-bezier(0.4,0.0,0.2,1);
+}
+
+.bulkCount {
+  font-weight: 500;
+  color: var(--color-secondary);
+}
+
+.bulkButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.bulkButtons button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.17s, box-shadow 0.2s;
+  color: var(--bg-main);
+}
+
+.bulkButtons button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.30);
+}
+
+.bulkAvailable {
+  background: var(--accent-green);
+}
+
+.bulkAvailable:hover {
+  background: #2ecc71;
+}
+
+.bulkUnavailable {
+  background: var(--accent-red);
+}
+
+.bulkUnavailable:hover {
+  background: #ff6b6b;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
 }

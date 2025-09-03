@@ -2,7 +2,7 @@
 
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticatedOrReadOnly
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.decorators import action
 from rest_framework.response import Response
 import json
@@ -39,8 +39,22 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class DishViewSet(viewsets.ModelViewSet):
     queryset = Dish.objects.all().order_by('name')
     permission_classes = [IsAuthenticatedOrReadOnly] 
-    parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
+    def get_queryset(self):
+        """
+        Base queryset that can be filtered by the 'is_available' query parameter.
+        """
+        queryset = Dish.objects.all().order_by('category__name', 'name')
+        
+        # Check for the 'is_available' query parameter
+        is_available_param = self.request.query_params.get('is_available')
 
+        if is_available_param is not None:
+            # Convert string ('true'/'false') from URL to a boolean
+            is_available = is_available_param.lower() == 'true'
+            queryset = queryset.filter(is_available=is_available)
+           
+        return queryset
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve', 'specials', 'most_liked']:
             return DishSerializer
@@ -97,7 +111,38 @@ class DishViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset().order_by('-like_count')[:5]
         data = self._get_dishes_with_availability(queryset)
         return Response(data)
+    @action(detail=False, methods=['post'], permission_classes=[IsAdminUser])
+    def bulk_update_availability(self, request):
+        """
+        Updates the 'is_available' status for a list of dish IDs.
+        Expects a POST request with:
+        {
+            "dish_ids": [1, 2, 3],
+            "is_available": true
+        }
+        """
+        dish_ids = request.data.get('dish_ids', [])
+        is_available = request.data.get('is_available')
 
+        # --- Input validation ---
+        if not isinstance(dish_ids, list) or not dish_ids:
+            return Response(
+                {'error': '`dish_ids` must be a non-empty list.'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if not isinstance(is_available, bool):
+            return Response(
+                {'error': '`is_available` must be a boolean (true/false).'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # --- Perform the database update ---
+        updated_count = Dish.objects.filter(id__in=dish_ids).update(is_available=is_available)
+
+        return Response(
+            {'message': f'Successfully updated {updated_count} dishes.'}, 
+            status=status.HTTP_200_OK
+        )
     @action(detail=False, methods=['post'], permission_classes=[IsAdminUser])
     def bulk_import(self, request):
         # ... (bulk import logic remains the same) ...
