@@ -14,6 +14,7 @@ import InventoryPage from './pages/InventoryPage';
 import POSPage from './pages/POSPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import DiscountsPage from './pages/DiscountsPage';
+import CounterPage from './pages/CounterPage';
 
 import './App.css';
 
@@ -45,6 +46,7 @@ function App() {
             <Route path="/kitchen" element={<KitchenDashboard />} />
             <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/orders" element={<ProtectedRoute><AllOrdersPage /></ProtectedRoute>} />
+            <Route path="/Counter" element={<ProtectedRoute><CounterPage /></ProtectedRoute>} />
             <Route path="/qr-codes" element={<ProtectedRoute><AdminQRDownload /></ProtectedRoute>} />
             <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
             <Route path="/menu" element={<ProtectedRoute><MenuManagementPage /></ProtectedRoute>} />

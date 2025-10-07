@@ -20,7 +20,8 @@ class BillSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'table_number', 'is_paid', 'created_at', 'orders', 'coins_redeemed', 'coin_discount',
             'total_amount', 'applied_discount', 'discount_amount', 
-            'discount_request_pending', 'bill_status'
+            'discount_request_pending', 'bill_status','subtotal',
+            'tax_amount',
         ]
 
     def get_total_amount(self, obj):

@@ -1,17 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import styles from './DishFormModal.module.css';
-import apiClient from '../api/axiosConfig'; // Import apiClient for direct calls
-import { FiTrash2, FiPlus } from 'react-icons/fi';
+import React, { useState, useEffect } from "react";
+import styles from "./DishFormModal.module.css";
+import apiClient from "../api/axiosConfig";
+import { FiTrash2, FiPlus } from "react-icons/fi";
 
-const DishFormModal = ({ isOpen, onClose, onSave, dish, categories, allIngredients, onDataRefresh }) => {
+const DishFormModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  dish,
+  categories,
+  allIngredients,
+  onDataRefresh,
+}) => {
   const [formData, setFormData] = useState({});
   const [imagePreview, setImagePreview] = useState(null);
-  
-  const [newRecipeItem, setNewRecipeItem] = useState({ ingredient_id: '', quantity_required: '' });
+  const [newRecipeItem, setNewRecipeItem] = useState({
+    ingredient_id: "",
+    quantity_required: "",
+  });
 
   useEffect(() => {
     if (dish) {
-      setFormData({ ...dish, category: dish.category?.id || '' });
+      setFormData({
+        ...dish,
+        category: dish.category?.id || "",
+      });
       if (dish.image_url) {
         setImagePreview(`http://127.0.0.1:8000${dish.image_url}`);
       } else {
@@ -19,8 +32,14 @@ const DishFormModal = ({ isOpen, onClose, onSave, dish, categories, allIngredien
       }
     } else {
       setFormData({
-        name: '', description: '', price: '', is_special: false,
-        food_type: 'Vegetarian', category: '', image: null, is_available: true,
+        name: "",
+        description: "",
+        price: "",
+        is_special: false,
+        food_type: "veg",
+        category: "",
+        image: null,
+        is_available: true,
       });
       setImagePreview(null);
     }
@@ -30,55 +49,94 @@ const DishFormModal = ({ isOpen, onClose, onSave, dish, categories, allIngredien
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
-  
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData(prev => ({ ...prev, image: file }));
+      setFormData((prev) => ({ ...prev, image: file }));
       setImagePreview(URL.createObjectURL(file));
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
+
+    const data = new FormData();
+
+    // ✅ Required fields
+    data.append("name", formData.name);
+    data.append("price", formData.price);
+    data.append("category", formData.category);
+    data.append("food_type", formData.food_type);
+
+    // ✅ Optional fields
+    if (formData.description) data.append("description", formData.description);
+    data.append("is_special", formData.is_special ? "true" : "false");
+    data.append("is_available", formData.is_available ? "true" : "false");
+
+    // ✅ Image (only if a new file selected)
+    if (formData.image instanceof File) {
+      data.append("image", formData.image);
+    }
+
+    // Debug log
+    for (let pair of data.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+
+    try {
+      const response = await apiClient.post("/menu/dishes/", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      console.log("✅ Dish saved:", response.data);
+      onSave();
+      onClose();
+      onDataRefresh();
+    } catch (err) {
+      console.error("❌ Failed to save dish:", err.response?.data || err);
+      alert("Failed to save dish. Check console for details.");
+    }
   };
 
   const handleRecipeChange = (e) => {
     const { name, value } = e.target;
-    setNewRecipeItem(prev => ({ ...prev, [name]: value }));
+    setNewRecipeItem((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAddIngredient = async () => {
     if (!newRecipeItem.ingredient_id || !newRecipeItem.quantity_required) {
-      alert('Please select an ingredient and enter a quantity.');
+      alert("Please select an ingredient and enter a quantity.");
       return;
     }
     try {
-      await apiClient.post(`/menu/dishes/${dish.id}/ingredients/`, newRecipeItem);
-      setNewRecipeItem({ ingredient_id: '', quantity_required: '' }); // Reset form
-      // Fetch the single dish again to get the updated ingredient list
+      await apiClient.post(`/menu/dishes/${dish.id}/ingredients/`, {
+        ingredient: newRecipeItem.ingredient_id,
+        quantity_required: newRecipeItem.quantity_required,
+      });
+      setNewRecipeItem({ ingredient_id: "", quantity_required: "" });
       const response = await apiClient.get(`/menu/dishes/${dish.id}/`);
-      setFormData(response.data); // Update the form data with the latest dish details
-      onDataRefresh(); // Refresh the main page's dish list
+      setFormData(response.data);
+      onDataRefresh();
     } catch (err) {
-      alert('Failed to add ingredient to recipe.');
+      alert("Failed to add ingredient to recipe.");
       console.error(err);
     }
   };
 
   const handleRemoveIngredient = async (ingredientId) => {
-    if (window.confirm('Are you sure you want to remove this ingredient from the recipe?')) {
+    if (window.confirm("Are you sure you want to remove this ingredient?")) {
       try {
         await apiClient.delete(`/menu/dishes/${dish.id}/ingredients/${ingredientId}/`);
-        // Fetch the single dish again to get the updated ingredient list
         const response = await apiClient.get(`/menu/dishes/${dish.id}/`);
-        setFormData(response.data); // Update the form data
-        onDataRefresh(); // Refresh the main page's dish list
+        setFormData(response.data);
+        onDataRefresh();
       } catch (err) {
-        alert('Failed to remove ingredient.');
+        alert("Failed to remove ingredient.");
         console.error(err);
       }
     }
@@ -87,51 +145,106 @@ const DishFormModal = ({ isOpen, onClose, onSave, dish, categories, allIngredien
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <h2>{dish ? 'Edit Dish' : 'Add New Dish'}</h2>
-        
+        <h2>{dish ? "Edit Dish" : "Add New Dish"}</h2>
+
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
             <label>Name</label>
-            <input type="text" name="name" value={formData.name || ''} onChange={handleChange} required />
+            <input
+              type="text"
+              name="name"
+              value={formData.name || ""}
+              onChange={handleChange}
+              required
+            />
           </div>
           <div className={styles.formGroup}>
             <label>Description</label>
-            <textarea name="description" value={formData.description || ''} onChange={handleChange}></textarea>
+            <textarea
+              name="description"
+              value={formData.description || ""}
+              onChange={handleChange}
+            ></textarea>
           </div>
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
               <label>Price</label>
-              <input type="number" name="price" value={formData.price || ''} onChange={handleChange} required step="0.01" />
+              <input
+                type="number"
+                name="price"
+                value={formData.price || ""}
+                onChange={handleChange}
+                required
+                step="0.01"
+              />
             </div>
             <div className={styles.formGroup}>
               <label>Category</label>
-              <select name="category" value={formData.category || ''} onChange={handleChange} required>
-                <option value="" disabled>Select a category</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+              <select
+                name="category"
+                value={formData.category || ""}
+                onChange={handleChange}
+                required
+              >
+                <option value="" disabled>
+                  Select a category
+                </option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
                 ))}
               </select>
             </div>
-             <div className={styles.formGroup}>
+            <div className={styles.formGroup}>
               <label>Food Type</label>
-              <select name="food_type" value={formData.food_type || 'Vegetarian'} onChange={handleChange}>
-                <option value="Vegetarian">Vegetarian</option>
-                <option value="Non-Vegetarian">Non-Vegetarian</option>
+              <select
+                name="food_type"
+                value={formData.food_type || "veg"}
+                onChange={handleChange}
+              >
+                <option value="veg">Vegetarian</option>
+                <option value="non-veg">Non-Vegetarian</option>
               </select>
             </div>
-             <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
-              <input type="checkbox" id="is_special" name="is_special" checked={formData.is_special || false} onChange={handleChange} />
+            <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
+              <input
+                type="checkbox"
+                id="is_special"
+                name="is_special"
+                checked={formData.is_special || false}
+                onChange={handleChange}
+              />
               <label htmlFor="is_special">Special Dish?</label>
             </div>
           </div>
           <div className={styles.formGroup}>
             <label>Image</label>
-            <input type="file" name="image" onChange={handleImageChange} accept="image/*" />
-            {imagePreview && <img src={imagePreview} alt="Preview" className={styles.imagePreview} />}
+            <input
+              type="file"
+              name="image"
+              onChange={handleImageChange}
+              accept="image/*"
+            />
+            {imagePreview && (
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className={styles.imagePreview}
+              />
+            )}
           </div>
           <div className={styles.formActions}>
-            <button type="button" className={styles.cancelButton} onClick={onClose}>Cancel</button>
-            <button type="submit" className={styles.saveButton}>Save Details</button>
+            <button
+              type="button"
+              className={styles.cancelButton}
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button type="submit" className={styles.saveButton}>
+              Save Details
+            </button>
           </div>
         </form>
 
@@ -140,29 +253,52 @@ const DishFormModal = ({ isOpen, onClose, onSave, dish, categories, allIngredien
             <hr className={styles.divider} />
             <h4>Recipe Ingredients</h4>
             <ul className={styles.ingredientList}>
-              {formData.ingredients && formData.ingredients.map(item => (
-                <li key={item.id}>
-                  <span>{item.ingredient.name} - {item.quantity_required} {item.ingredient.unit}</span>
-                  <button onClick={() => handleRemoveIngredient(item.id)} className={styles.removeButton}><FiTrash2 /></button>
-                </li>
-              ))}
+              {formData.ingredients &&
+                formData.ingredients.map((item) => (
+                  <li key={item.id}>
+                    <span>
+                      {item.ingredient.name} - {item.quantity_required}{" "}
+                      {item.ingredient.unit}
+                    </span>
+                    <button
+                      onClick={() => handleRemoveIngredient(item.id)}
+                      className={styles.removeButton}
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </li>
+                ))}
             </ul>
             <div className={styles.addIngredientForm}>
-              <select name="ingredient_id" value={newRecipeItem.ingredient_id} onChange={handleRecipeChange}>
-                <option value="" disabled>Select Ingredient</option>
-                {allIngredients.map(ing => (
-                  <option key={ing.id} value={ing.id}>{ing.name}</option>
+              <select
+                name="ingredient_id"
+                value={newRecipeItem.ingredient_id}
+                onChange={handleRecipeChange}
+              >
+                <option value="" disabled>
+                  Select Ingredient
+                </option>
+                {allIngredients.map((ing) => (
+                  <option key={ing.id} value={ing.id}>
+                    {ing.name}
+                  </option>
                 ))}
               </select>
-              <input 
-                type="number" 
-                name="quantity_required" 
-                placeholder="Quantity" 
+              <input
+                type="number"
+                name="quantity_required"
+                placeholder="Quantity"
                 value={newRecipeItem.quantity_required}
                 onChange={handleRecipeChange}
                 step="0.01"
               />
-              <button type="button" onClick={handleAddIngredient} className={styles.addButton}><FiPlus /></button>
+              <button
+                type="button"
+                onClick={handleAddIngredient}
+                className={styles.addButton}
+              >
+                <FiPlus />
+              </button>
             </div>
           </div>
         )}

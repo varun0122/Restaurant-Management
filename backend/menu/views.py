@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticatedOrR
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.viewsets import ReadOnlyModelViewSet
 import json
 import zipfile
 from django.core.files.base import ContentFile
@@ -31,13 +32,13 @@ class DishIngredientViewSet(viewsets.ModelViewSet):
 
       
 class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all().order_by('name')
+    queryset = Category.objects.filter(is_point_of_sale_only=False).order_by('name')
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class DishViewSet(viewsets.ModelViewSet):
-    queryset = Dish.objects.all().order_by('name')
+    queryset = Dish.objects.filter(category__is_point_of_sale_only=False).order_by('name')
     permission_classes = [IsAuthenticatedOrReadOnly] 
     parser_classes = (MultiPartParser, FormParser, JSONParser)
     def get_queryset(self):
@@ -111,6 +112,18 @@ class DishViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset().order_by('-like_count')[:5]
         data = self._get_dishes_with_availability(queryset)
         return Response(data)
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            print("❌ Serializer errors:", serializer.errors)  # logs in console
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
     @action(detail=False, methods=['post'], permission_classes=[IsAdminUser])
     def bulk_update_availability(self, request):
         """
@@ -198,3 +211,19 @@ class DishViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Invalid JSON in menu.json.'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class POSDishViewSet(ReadOnlyModelViewSet):
+    """
+    A simple viewset that provides a list of dishes available for Point of Sale.
+    This is for the staff-facing POS screen only.
+    It's ReadOnly because staff only need to VIEW dishes to add them to an order.
+    """
+    permission_classes = [IsAdminUser] # Ensures only logged-in staff can access
+    serializer_class = DishSerializer
+    
+    def get_queryset(self):
+        """
+        Return only the dishes that belong to a POS-only category.
+        """
+        return Dish.objects.all().order_by('category__name', 'name')

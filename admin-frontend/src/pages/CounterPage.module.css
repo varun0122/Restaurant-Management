@@ -1,0 +1,464 @@
+/* --- Base Container --- */
+.posContainer {
+    display: flex;
+    height: 100vh;
+    background-color: #1a1a1a;
+    color: #fff;
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    gap: 0;
+    overflow: hidden;
+}
+
+/* --- Menu Section (Left Side) --- */
+.menuSection {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* --- Filters (Search and Categories) --- */
+.filtersContainer {
+    padding: 1rem;
+    background-color: #202020;
+    border-bottom: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.searchBar {
+    position: relative;
+}
+
+.searchIcon {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    color: #888;
+}
+
+.searchBar input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background-color: #2c2c2c;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.searchBar input:focus {
+    border-color: #D4AF37;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+}
+
+.categoryButtons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.categoryButton {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: 1px solid #555;
+    background-color: transparent;
+    color: #ccc;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.categoryButton:hover {
+    background-color: #333;
+    border-color: #777;
+    color: #fff;
+}
+
+.activeCategory {
+    background-color: #D4AF37;
+    border-color: #D4AF37;
+    color: #121212;
+    font-weight: bold;
+}
+
+
+/* --- Menu Grid --- */
+.menuGrid {
+    flex-grow: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #444 #222;
+}
+.menuGrid::-webkit-scrollbar {
+    width: 8px;
+    background: #222;
+}
+.menuGrid::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 8px;
+}
+.noResults {
+    grid-column: 1 / -1; /* Span all columns */
+    text-align: center;
+    color: #888;
+    margin-top: 2rem;
+    font-size: 1.1rem;
+}
+
+.dishCard {
+    background-color: #24232b;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.20s, box-shadow 0.20s, border 0.12s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    outline: none;
+}
+.dishCard:focus, .dishCard:hover {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+    border-color: #D4AF37;
+}
+
+.dishCard img {
+    width: 100%;
+    max-width: 140px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin: 0 auto 0.75rem auto;
+    background: #333;
+}
+.dishName {
+    font-weight: bold;
+    font-size: 1.05rem;
+    letter-spacing: 0.1px;
+}
+.dishPrice {
+    color: #D4AF37; /* Gold accent */
+    font-size: 1rem;
+    margin-top: 0.5rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* --- Cart section (Right Side) --- */
+.cart {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(to bottom, #191716 85%, #16130f 100%);
+    padding: 1.5rem 1rem 1.5rem 1.25rem;
+    box-shadow: -5px 0 18px rgba(0,0,0,0.34);
+    z-index: 2;
+    min-width: 380px;
+    max-width: 410px;
+    overflow: hidden;
+}
+@media (max-width: 900px) {
+    .posContainer {
+        flex-direction: column;
+    }
+    .cart {
+        min-width: 100%;
+        max-width: 100%;
+        box-shadow: none;
+        padding: 1rem;
+        height: 50vh; /* Give cart a defined height on mobile */
+    }
+}
+
+.cartTitle {
+    text-align: center;
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #444;
+    padding-bottom: 1rem;
+    letter-spacing: 0.25px;
+}
+
+.cartItems {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 0.3rem;
+    scrollbar-width: thin;
+    scrollbar-color: #333 #191716;
+}
+.cartItems::-webkit-scrollbar {
+    width: 8px;
+    background: #191716;
+}
+.cartItems::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 6px;
+}
+.emptyCart {
+    text-align: center;
+    color: #888;
+    font-size: 1.05rem;
+    margin-top: 2.5rem;
+}
+
+.cartItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.7rem 0.5rem;
+    background-color: #222127;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+    transition: background 0.19s;
+}
+.cartItem:hover {
+    background-color: #23222a;
+}
+.itemInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 70px;
+}
+.itemName {
+    font-weight: 500;
+    font-size: 1.07rem;
+    letter-spacing: 0.12px;
+}
+.itemPrice {
+    font-size: 0.87rem;
+    color: #D4AF37;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+.itemControls {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+.itemControls button {
+    background: #444;
+    border: none;
+    color: #fff;
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.17rem;
+    transition: background 0.17s, color 0.13s;
+    outline: none;
+}
+.itemControls button:hover {
+    background: #D4AF37;
+    color: #191716;
+}
+.itemControls span {
+    font-size: 1.05rem;
+    min-width: 18px;
+    text-align: center;
+    font-weight: 600;
+    color: #fff;
+}
+
+/* --- Discount Section --- */
+.discountSection {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #333;
+}
+.discountInputGroup {
+    display: flex;
+    gap: 0.5rem;
+}
+.discountInputGroup input {
+    flex-grow: 1;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #555;
+    background-color: #2c2c2c;
+    color: #fff;
+    border-radius: 5px;
+    outline: none;
+}
+.discountInputGroup input:focus {
+    border-color: #D4AF37;
+}
+.discountInputGroup button {
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #555;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+}
+.discountInputGroup button:hover {
+    background-color: #666;
+}
+.appliedDiscount {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0.8rem;
+    background-color: #2a3a2a;
+    border: 1px solid #3c5c3c;
+    color: #90ee90;
+    border-radius: 5px;
+}
+.appliedDiscount button {
+    background: #d43737;
+    color: white;
+    border: none;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.discountError {
+    color: #ff4d4d;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+/* --- Cart Summary --- */
+.cartSummary {
+    margin-top: auto;
+    border-top: 1px solid #444;
+    padding: 1.5rem 0 0.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+}
+.grandTotal {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-top: 0.6rem;
+    color: #D4AF37;
+    letter-spacing: 1px;
+}
+.discountApplied {
+    color: #90ee90;
+    font-weight: bold;
+}
+
+.confirmButton, .clearButton {
+    width: 100%;
+    padding: 1rem 0.5rem;
+    border: none;
+    border-radius: 7px;
+    font-size: 1.07rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 0.48rem;
+    transition: all 0.2s;
+    outline: none;
+}
+.confirmButton {
+    background-color: #D4AF37; /* Gold */
+    color: #121212;
+}
+.confirmButton:hover {
+    background-color: #ffdd40;
+    box-shadow: 0 3px 15px #D4AF3790;
+}
+.clearButton {
+    background-color: transparent;
+    border: 1px solid #555;
+    color: #aaa;
+}
+.clearButton:hover {
+    background-color: #555;
+    color: #fff;
+}
+
+/* --- Payment Prompt Modal --- */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modalContent {
+    background-color: #2c2c2c;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+    width: 90%;
+    max-width: 450px;
+    position: relative;
+    text-align: center;
+}
+.modalCloseButton {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+.modalSubtitle {
+    color: #aaa;
+    margin: 0.5rem 0 1.5rem;
+}
+.paymentPromptForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.promptInput {
+    padding: 0.8rem 1rem;
+    border-radius: 5px;
+    border: 1px solid #555;
+    background-color: #333;
+    color: #fff;
+    font-size: 1rem;
+}
+.promptButton {
+    padding: 0.8rem 1rem;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    background-color: #D4AF37;
+    color: #121212;
+}
+.secondaryButton {
+    background-color: #555;
+    color: #eee;
+}

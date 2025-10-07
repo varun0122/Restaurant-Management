@@ -26,7 +26,8 @@ SECRET_KEY = 'django-insecure-#ew^m+tlh*3k@7ze3)5oe&dbc@l&&@#b^w-e$bi=)w3bx&9oov
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
+
 
 
 # Application definition
@@ -84,6 +85,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",      # Your customer frontend
     "https://your-live-website.com", # Your future production URL
 ]
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

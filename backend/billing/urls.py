@@ -6,6 +6,7 @@ urlpatterns = [
     path('<int:bill_id>/mark-as-paid/', views.mark_bill_as_paid, name='mark-as-paid'),
     path('<int:bill_id>/apply-discount/', views.apply_discount, name='apply-discount'),
     path('recent/', views.recent_bills_list, name='recent-bills'),
+
     # Customer URLs
     path('myunpaid/', views.customer_unpaid_bills, name='customer-unpaid-bills'),
     path('customer/<int:bill_id>/', views.get_bill_details, name='customer-bill-details'),
@@ -16,4 +17,5 @@ urlpatterns = [
     #path('customer/<int:bill_id>/request-special-discount/', views.customer_request_special_discount, name='customer-request-special-discount'),
     path('customer/<int:bill_id>/remove-discount/', views.customer_remove_discount, name='customer-remove-discount'),
     path('bills/<int:bill_id>/apply-coins/', ApplyCoinsView.as_view(), name='apply-coins'), 
+    path('preview-discount/', views.preview_discount, name='preview-discount'),
 ]

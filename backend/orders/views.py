@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-
+from discounts.models import Discount
 # Import all models needed
 from .models import Order, OrderItem, ORDER_STATUS
 from customers.models import Customer
@@ -26,6 +26,7 @@ from .serializers import (
     OrderWriteSerializer,
     DashboardOrderSerializer
 )
+from billing.serializers import BillSerializer
 
 # --- VIEW 1: For Customer Self-Service Orders ---
 @api_view(['POST'])
@@ -260,7 +261,8 @@ def kitchen_display_orders(request):
     # Fetch all active orders since the start of the current business day.
     orders = Order.objects.filter(
         status__in=active_statuses,
-        created_at__gte=start_of_business_day
+        created_at__gte=start_of_business_day,
+        is_pos_order=False
     ).order_by('created_at')
     
     serializer = OrderSerializer(orders, many=True)
@@ -419,3 +421,83 @@ def dashboard_recent_orders(request):
     # ✨ Use the new, correct serializer
     serializer = DashboardOrderSerializer(orders, many=True)
     return Response(serializer.data)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])  # requires JWT token
+def create_and_pay_order(request):
+    """
+    Creates a new order and an associated bill from POS data,
+    applies a discount, calculates totals, deducts inventory,
+    marks the bill as paid, awards loyalty points, and returns the bill.
+    """
+    data = request.data  # ✅ works now
+    serializer = OrderWriteSerializer(data=data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        with transaction.atomic():
+            # Step 1: Create the Order object and get the customer
+            order = serializer.save()
+            customer = order.customer
+
+            # Step 2: Create a new Bill for this transaction
+            table, _ = Table.objects.get_or_create(table_number=order.table_number)
+            bill = Bill.objects.create(table=table)
+            order.bill = bill
+            order.save()
+
+            # --- Calculate totals directly here ---
+            subtotal = sum(item.dish.price * item.quantity for item in order.items.all())
+            bill.subtotal = subtotal
+
+            # Apply discount if provided
+            discount_code = data.get("discount_code")
+            if discount_code:
+                try:
+                    discount = Discount.objects.get(code__iexact=discount_code, is_active=True)
+                    bill.applied_discount = discount
+                    if discount.discount_type == "PERCENTAGE":
+                        discount_amount = (subtotal * discount.value) / Decimal("100")
+                    else:
+                        discount_amount = discount.value
+                    bill.discount_amount = min(subtotal, discount_amount)
+                except Discount.DoesNotExist:
+                    raise Exception("Invalid or inactive discount code.")
+
+            # Tax and total
+            discounted_subtotal = bill.subtotal - bill.discount_amount
+            TAX_RATE = Decimal("0.05")
+            bill.tax_amount = discounted_subtotal * TAX_RATE
+            bill.final_amount = discounted_subtotal + bill.tax_amount
+            bill.save()
+
+            # Step 3: Deduct inventory
+            for item in order.items.all():
+                for recipe_item in item.dish.dishingredient_set.all():
+                    ingredient = recipe_item.ingredient
+                    quantity_needed = recipe_item.quantity_required * item.quantity
+                    if ingredient.current_stock < quantity_needed:
+                        raise Exception(f"Not enough stock for {ingredient.name}.")
+                    ingredient.current_stock -= quantity_needed
+                    ingredient.save()
+
+            # Step 4: Award loyalty points
+            if customer and bill.final_amount > 0:
+                points_earned = int(bill.final_amount / 10)
+                if points_earned > 0:
+                    customer.loyalty_coins += points_earned
+                    customer.save()
+
+            # Step 5: Finalize statuses
+            order.status = "Served"
+            bill.is_paid = True
+            bill.paid_at = timezone.now()
+            order.save()
+            bill.save()
+
+            # Step 6: Return serialized bill
+            serialized_bill = BillSerializer(bill)
+            return Response(serialized_bill.data, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

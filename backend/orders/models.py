@@ -15,6 +15,10 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=ORDER_STATUS, default='Pending')
     table_number = models.PositiveIntegerField()
+    is_pos_order = models.BooleanField(
+        default=False,
+        help_text="True if this order was created from the POS screen."
+    )
     bill = models.ForeignKey(
         Bill, 
         on_delete=models.CASCADE,

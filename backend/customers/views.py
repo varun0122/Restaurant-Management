@@ -7,6 +7,7 @@ import random # Make sure to import random
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser
 
 @api_view(['POST'])
 def send_otp(request):
@@ -78,3 +79,14 @@ def get_current_customer(request):
         return Response(serializer.data)
     except Customer.DoesNotExist:
         return Response({'error': 'Customer not found.'}, status=status.HTTP_404_NOT_FOUND)
+    
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser]) # Protects endpoint so only staff can see all customers
+def list_customers(request):
+    """
+    Returns a list of all customers for the POS system to search through.
+    """
+    customers = Customer.objects.all().order_by('phone_number')
+    serializer = CustomerSerializer(customers, many=True)
+    return Response(serializer.data)

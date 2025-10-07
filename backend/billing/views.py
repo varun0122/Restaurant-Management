@@ -350,3 +350,50 @@ def admin_remove_discount(request, bill_id):
         return Response(BillSerializer(bill).data)
     except Bill.DoesNotExist:
         return Response({'error': 'Bill not found or already paid.'}, status=404)
+    
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def preview_discount(request):
+    """
+    Validates and calculates discount amount for a given code on a cart.
+    This does NOT create or modify any bills/orders.
+    """
+    data = request.data
+    code = data.get('code', '').strip()
+    cart_items = data.get('cart_items', [])
+    subtotal = data.get('subtotal')
+
+    if not code:
+        return Response({'valid': False, 'error': 'Discount code is required.'}, status=400)
+
+    try:
+        subtotal = Decimal(str(subtotal))
+    except (InvalidOperation, TypeError):
+        return Response({'valid': False, 'error': 'Invalid subtotal value.'}, status=400)
+
+    try:
+        discount = Discount.objects.get(code__iexact=code, is_active=True)
+    except Discount.DoesNotExist:
+        return Response({'valid': False, 'error': 'Invalid or inactive discount code.'}, status=400)
+
+    if discount.discount_type == 'PERCENTAGE':
+        discount_amount = (subtotal * discount.value) / Decimal('100')
+    else:
+        discount_amount = discount.value
+
+    discount_amount = min(subtotal, discount_amount)
+
+    # --- FIX IS HERE ---
+    discount_metadata = {
+        'code': discount.code,
+        # 'description': discount.description, # This line is removed to prevent the error
+        'discount_type': discount.discount_type,
+        'value': str(discount.value),
+    }
+
+    return Response({
+        'valid': True,
+        'discount_amount': float(discount_amount),
+        'discount_metadata': discount_metadata,
+        'subtotal_after_discount': float(subtotal - discount_amount),
+    })

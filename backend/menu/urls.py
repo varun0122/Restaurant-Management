@@ -6,6 +6,7 @@ from . import views
 
 # Create the main router
 router = routers.DefaultRouter()
+router.register(r'pos-dishes', views.POSDishViewSet, basename='pos-dish')
 router.register(r'categories', views.CategoryViewSet, basename='category')
 router.register(r'dishes', views.DishViewSet, basename='dish')
 

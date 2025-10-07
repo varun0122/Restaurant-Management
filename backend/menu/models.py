@@ -4,6 +4,19 @@ from inventory.models import Ingredient # Import the Ingredient model
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
+    
+    # --- ADDED: Description field for the category ---
+    description = models.TextField(
+        blank=True, 
+        null=True, 
+        help_text="A brief description of the category (optional)."
+    )
+    
+    is_point_of_sale_only = models.BooleanField(
+        default=False, 
+        help_text="Items in this category are hidden from the main app and only appear on the staff's POS screen."
+    )
+    
     def __str__(self):
         return self.name
 
@@ -24,9 +37,10 @@ class DishIngredient(models.Model):
 class Dish(models.Model):
     # --- Preserving your original choices ---
     FOOD_TYPE_CHOICES = [
-        ('veg', 'Vegetarian'),
-        ('non-veg', 'Non-Vegetarian'),
-    ]
+    ("veg", "Vegetarian"),
+    ("non-veg", "Non-Vegetarian"),
+        ]
+    
 
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -35,7 +49,7 @@ class Dish(models.Model):
     is_special = models.BooleanField(default=False)
     like_count = models.IntegerField(default=0)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='dishes')
-    food_type = models.CharField(max_length=10, choices=FOOD_TYPE_CHOICES, default='veg')
+    food_type = models.CharField(max_length=20, choices=FOOD_TYPE_CHOICES)
     is_available = models.BooleanField(default=True) # Added for inventory tracking
 
     # --- NEW: Relationship to Ingredients ---
