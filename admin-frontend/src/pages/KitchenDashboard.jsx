@@ -127,6 +127,18 @@ const KitchenDashboard = () => {
       console.error(err);
     }
   };
+  const handleCancelOrder = async (orderId) => {
+        if (window.confirm('Are you sure you want to cancel this order? This will restore inventory.')) {
+            try {
+                // Notice this is a POST request to our new endpoint
+                await apiClient.post(`/orders/${orderId}/cancel/`);
+                // The WebSocket will handle the UI update automatically
+            } catch (err) {
+                alert('Failed to cancel the order.');
+                console.error(err);
+            }
+        }
+    };
 
   const pendingOrders = orders.filter(o => o.status === 'Pending');
   const preparingOrders = orders.filter(o => o.status === 'Preparing');
@@ -155,6 +167,11 @@ const KitchenDashboard = () => {
           )}
         </ul>
         <div className="card-footer">
+          <button 
+                        className="btn btn-danger" 
+                        onClick={e => { e.stopPropagation(); handleCancelOrder(order.id); }}>
+                        Cancel
+                    </button>
           {order.status === 'Pending' &&
             <button className="btn btn-primary" onClick={e => { e.stopPropagation(); updateOrderStatus(order.id, 'Preparing'); }}>
               Start Preparing

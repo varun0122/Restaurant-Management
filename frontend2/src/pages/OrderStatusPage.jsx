@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import styles from './OrderStatusPage.module.css';
 import BillModal from '../components/BillModal';
-
+import useWebSocket from 'react-use-websocket';
+import { jwtDecode } from 'jwt-decode';
 // This is a helper component to show the visual status tracker. No changes needed here.
 const StatusTracker = ({ status }) => {
   const statuses = ['Pending', 'Preparing', 'Ready'];
@@ -64,7 +65,26 @@ const OrderStatusPage = () => {
       setLoading(false); // Stop loading indicator regardless of outcome
     }
   };
-
+  const getCustomerId = () => {
+        const token = localStorage.getItem('customer_access_token');
+        if (token) {
+            try {
+                const decodedToken = jwtDecode(token);
+                // The key in the token is usually 'user_id'. 
+                // Check your Django JWT settings to confirm.
+                return decodedToken.user_id;
+            } catch (error) {
+                console.error("Error decoding token:", error);
+                return null;
+            }
+        }
+        return null;
+    };
+  const customerId = getCustomerId();
+  const socketUrl = customerId 
+        ? `ws://127.0.0.1:8000/ws/customer/${customerId}/` 
+        : null;
+  const { lastMessage } = useWebSocket(socketUrl);
   // useEffect hook to fetch data on component mount and set up polling
   useEffect(() => {
     fetchCustomerData(); // Fetch data initially
@@ -73,7 +93,19 @@ const OrderStatusPage = () => {
     // Cleanup function to clear the interval when the component unmounts
     return () => clearInterval(interval);
   }, []);
-
+  useEffect(() => {
+        // This part runs every time a new message comes from the WebSocket
+        if (lastMessage !== null) {
+            const data = JSON.parse(lastMessage.data);
+            if (data.type === 'order_update') {
+                // Here, you would write logic to find and update the specific
+                // order in your state (inKitchenOrders, pastOrders, etc.)
+                // This removes the need for polling.
+                console.log('Received real-time update:', data.order);
+                fetchCustomerData(); // Or update state manually for better performance
+            }
+        }
+    }, [lastMessage]);
 
   // Conditional rendering for loading and error states
   if (loading) return <div className={styles.container}><h4>Loading Your Orders...</h4></div>;
@@ -139,20 +171,24 @@ const OrderStatusPage = () => {
           <h3>Past Orders</h3>
           {pastOrders.length > 0 ? (
             pastOrders.map(order => (
-              <div key={order.id} className={`${styles.orderCard} ${styles.pastOrder}`}>
+              <div 
+                key={order.id} 
+                className={`${styles.orderCard} ${styles.pastOrder} ${order.status === 'Cancelled' ? styles.cancelledOrder : ''}`}
+            >
                 <div className={styles.cardHeader}>
-                  <span>Order #{order.id} (Table {order.table_number})</span>
-                  <span>{new Date(order.created_at).toLocaleDateString()}</span>
+                    <span>Order #{order.id} (Table {order.table_number})</span>
+                    <span>{new Date(order.created_at).toLocaleDateString()}</span>
                 </div>
                 <div className={styles.pastOrderBody}>
-                  <p>Status: <strong>{order.bill?.is_paid ? 'Paid' : order.status}</strong></p>
-                  {order.bill && (
-                    <button onClick={() => setSelectedBillId(order.bill.id)} className={styles.viewBillButton}>
-                      View Bill
-                    </button>
-                  )}
+                    {/* Make the status text clearer */}
+                    <p>Status: <strong>{order.status === 'Cancelled' ? 'Cancelled by Restaurant' : (order.bill?.is_paid ? 'Paid' : order.status)}</strong></p>
+                    {order.bill && (
+                        <button onClick={() => setSelectedBillId(order.bill.id)} className={styles.viewBillButton}>
+                            View Bill
+                        </button>
+                    )}
                 </div>
-              </div>
+            </div>
             ))
           ) : (
             <p>You have no past orders.</p>

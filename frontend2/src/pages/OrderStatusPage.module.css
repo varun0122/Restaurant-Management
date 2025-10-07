@@ -139,3 +139,8 @@
   color: #F5F5F5; /* Soft white for active labels */
   font-weight: 600;
 }
+.cancelledOrder {
+  background-color: #fff1f0; /* A light red background */
+  border-left: 4px solid #d9534f; /* A red left border */
+  opacity: 0.8;
+}

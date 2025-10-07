@@ -50,3 +50,19 @@ class OrderConsumer(AsyncWebsocketConsumer):
             'type': 'order_update',
             'order': order_data
         }, cls=DecimalEncoder)) 
+
+class CustomerConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.customer_id = self.scope['url_route']['kwargs']['customer_id']
+        self.room_group_name = f'customer_{self.customer_id}'
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
+    async def order_update(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'order_update',
+            'order': event['order']
+        }, cls=DecimalEncoder))

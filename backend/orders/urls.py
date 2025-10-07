@@ -14,6 +14,7 @@ urlpatterns = [
     path('kitchen-display/', views.kitchen_display_orders, name='kitchen-display'),
     path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
      path('<int:order_id>/update-status/',views.update_order_status, name='update-order-status'),
+     path('<int:order_id>/cancel/', views.cancel_order, name='cancel-order'),
       path('all/', views.all_orders_list, name='all-orders-list'),
       path('status/<int:order_id>/', views.get_order_status, name='order-status'),
       path('my-history/',views.customer_order_history, name='customer-order-history'),

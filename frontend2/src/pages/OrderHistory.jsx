@@ -82,6 +82,11 @@ const OrderHistory = ({ onAddToCart }) => {
           <div key={order.id} className="card mb-3"> 
             <div className="card-header d-flex justify-content-between align-items-center"> 
               <strong>Order #{order.id} • {new Date(order.created_at).toLocaleDateString()}</strong> 
+               <span 
+                className={`badge ${order.status === 'Cancelled' ? 'bg-danger' : 'bg-success'}`}
+            >
+                {order.status === 'Cancelled' ? 'Cancelled' : 'Paid'}
+            </span>
               <button className="btn btn-primary btn-sm" onClick={() => openRepeatModal(order.items)}> 
                 Repeat Order 
               </button> 
