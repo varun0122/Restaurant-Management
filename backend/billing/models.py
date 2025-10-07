@@ -2,6 +2,7 @@ from django.db import models
 from tables.models import Table
 from discounts.models import Discount
 from decimal import Decimal,InvalidOperation,ROUND_HALF_UP
+from django.db.models import Sum, F 
 class Bill(models.Model):
     table = models.ForeignKey(Table, on_delete=models.CASCADE)
     
@@ -35,19 +36,17 @@ class Bill(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(null=True, blank=True)
     def recalculate_and_save(self):
-        subtotal = Decimal('0.00')
-        for order in self.orders.all():
-            for item in order.items.all():
-                subtotal += (item.dish.price or Decimal('0')) * item.quantity
-
-        if subtotal < 0:
-            subtotal = Decimal('0.00')
+        subtotal_agg = self.orders.aggregate(
+            total=Sum(F('items__quantity') * F('items__dish__price'))
+        )
+        subtotal = subtotal_agg['total'] or Decimal('0.00')
+        
 
         # Step 2: Calculate the total discount first
         total_discount = (self.discount_amount or Decimal('0.00')) + (self.coin_discount or Decimal('0.00'))
 
         # Step 3: Calculate the price AFTER discount
-        discounted_subtotal = subtotal - total_discount
+        discounted_subtotal = max(Decimal('0.00'), subtotal - total_discount)
         
         # Step 4: Calculate tax on the discounted subtotal
         TAX_RATE = Decimal('0.05')

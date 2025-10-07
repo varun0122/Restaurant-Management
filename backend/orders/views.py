@@ -30,6 +30,8 @@ from billing.serializers import BillSerializer
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from .utils import update_inventory_for_order
+import csv
+from django.http import HttpResponse
 # --- VIEW 1: For Customer Self-Service Orders ---
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -175,44 +177,60 @@ def kitchen_orders(request):
     serializer = OrderSerializer(orders, many=True)
     return Response(serializer.data)
 
-
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def dashboard_summary(request):
-    """
-    Provides an enhanced summary of key metrics for the admin dashboard.
-    --- FIX: Now includes total discounts given today. ---
-    """
     today = timezone.now().date()
+    seven_days_ago = today - timedelta(days=6)
 
+    # --- Metrics for Summary Cards ---
     todays_orders_count = Order.objects.filter(created_at__date=today).count()
-    pending_orders_count = Order.objects.filter(status='Pending').count()
+    pending_orders_count = Order.objects.filter(
+        status='Pending', 
+        created_at__date=today  # <-- ADD THIS CONDITION
+    ).count()
     total_dishes_count = Dish.objects.count()
 
-    paid_revenue_today = Decimal('0.00')
-    total_discounts_today = Decimal('0.00') # --- NEW: Initialize discount total ---
+    # --- CORRECTED REVENUE CALCULATION (PAID TODAY) ---
+    paid_revenue_today = Order.objects.filter(
+        bill__is_paid=True,
+        bill__paid_at__date=today
+    ).exclude(status='Cancelled').aggregate(
+        total=Sum('bill__final_amount')
+    )['total'] or Decimal('0.00')
+
+    # --- UNPAID REVENUE CALCULATION ---
+    unpaid_revenue = Order.objects.filter(
+        bill__is_paid=False
+    ).exclude(status='Cancelled').aggregate(
+        total=Sum('bill__final_amount')
+    )['total'] or Decimal('0.00')
+
+    total_discounts_today = Order.objects.filter(
+        bill__is_paid=True,
+        bill__paid_at__date=today
+    ).exclude(status='Cancelled').aggregate(
+        total=Sum('bill__discount_amount')
+    )['total'] or Decimal('0.00')
     
-    paid_bills_today = Bill.objects.filter(is_paid=True, paid_at__date=today)
-    for bill in paid_bills_today:
-        gross_total = OrderItem.objects.filter(order__bill=bill).aggregate(
-            total=Sum(F('quantity') * F('dish__price'), output_field=DecimalField())
-        )['total'] or Decimal('0.00')
-        
-        net_total = gross_total - bill.discount_amount
-        paid_revenue_today += net_total
-        
-        # --- NEW: Add the bill's discount to the daily total ---
-        total_discounts_today += bill.discount_amount
+    # --- CORRECTED WEEKLY SALES FOR THE GRAPH ---
+    # This is the most important change. We query Orders directly.
+    weekly_sales_data = Order.objects.filter(
+        bill__is_paid=True,
+        bill__paid_at__date__gte=seven_days_ago
+    ).exclude(status='Cancelled') \
+    .annotate(date=models.functions.TruncDate('bill__paid_at')) \
+    .values('date') \
+    .annotate(daily_revenue=Sum('bill__final_amount')) \
+    .order_by('date')
 
-    unpaid_revenue = Decimal('0.00')
-    unpaid_bills = Bill.objects.filter(is_paid=False)
-    for bill in unpaid_bills:
-        gross_total = OrderItem.objects.filter(order__bill=bill).aggregate(
-            total=Sum(F('quantity') * F('dish__price'), output_field=DecimalField())
-        )['total'] or Decimal('0.00')
-
-        net_total = gross_total - bill.discount_amount
-        unpaid_revenue += net_total
+    # Format data for the chart
+    sales_map = { (seven_days_ago + timedelta(days=i)).strftime('%Y-%m-%d'): 0 
+                  for i in range(7) }
+    for entry in weekly_sales_data:
+        sales_map[entry['date'].strftime('%Y-%m-%d')] = float(entry['daily_revenue'])
+    
+    chart_data = [{'date': date, 'revenue': revenue} for date, revenue in sales_map.items()]
 
     data = {
         'todays_orders': todays_orders_count,
@@ -220,7 +238,8 @@ def dashboard_summary(request):
         'total_dishes': total_dishes_count,
         'paid_revenue_today': paid_revenue_today,
         'unpaid_revenue': unpaid_revenue,
-        'total_discounts_today': total_discounts_today, # --- NEW: Add to response ---
+        'total_discounts_today': total_discounts_today,
+        'weekly_sales': chart_data,
     }
     return Response(data)
 
@@ -229,23 +248,30 @@ def dashboard_summary(request):
 def daily_sales_chart(request):
     today = timezone.now().date()
     seven_days_ago = today - timedelta(days=6)
-    sales_data = OrderItem.objects.filter(
-        order__created_at__date__gte=seven_days_ago,
+
+    # --- CORRECTED QUERY ---
+    # We query Orders, not OrderItems, to get an accurate sales record.
+    sales_data = Order.objects.filter(
+        bill__is_paid=True,                    # Condition 1: The bill must be paid
+        bill__paid_at__date__gte=seven_days_ago  # Condition 2: Paid within the last 7 days
+    ).exclude(
+        status='Cancelled'                     # Condition 3: The order must NOT be cancelled
     ).annotate(
-        date=models.functions.TruncDate('order__created_at')
+        date=models.functions.TruncDate('bill__paid_at') # Group by the actual payment date
     ).values('date').annotate(
-        daily_revenue=Sum(F('quantity') * F('dish__price'), output_field=DecimalField())
+        daily_revenue=Sum('bill__final_amount')        # Sum the final paid amount
     ).order_by('date')
 
+    # --- This part remains the same ---
     date_range = [seven_days_ago + timedelta(days=i) for i in range(7)]
     sales_map = {date.strftime('%Y-%m-%d'): 0 for date in date_range}
 
     for entry in sales_data:
+        # The key is 'date' and the value is 'daily_revenue' from our query
         sales_map[entry['date'].strftime('%Y-%m-%d')] = float(entry['daily_revenue'])
 
     chart_data = [{'date': date, 'revenue': revenue} for date, revenue in sales_map.items()]
     return Response(chart_data)
-
 
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
@@ -361,19 +387,31 @@ class MyTokenObtainPairView(TokenObtainPairView):
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def all_orders_list(request):
-    queryset = Order.objects.all().order_by('-created_at')
-    start_date_str = request.query_params.get('start_date', None)
-    end_date_str = request.query_params.get('end_date', None)
+    queryset = Order.objects.all().select_related('bill', 'customer').order_by('-created_at')
+    
+    start_date = request.query_params.get('start_date')
+    end_date = request.query_params.get('end_date')
+    status_filter = request.query_params.get('status')
+    payment_filter = request.query_params.get('payment_status')
 
-    if start_date_str:
-        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+    if start_date:
         queryset = queryset.filter(created_at__date__gte=start_date)
-
-    if end_date_str:
-        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+    if end_date:
         queryset = queryset.filter(created_at__date__lte=end_date)
+    
+    # --- ADD THIS LOGIC ---
+    if status_filter:
+        queryset = queryset.filter(status=status_filter)
+    
+    # Note: 'bill__is_paid' is a boolean, so we need to convert the string.
+    if payment_filter:
+        if payment_filter == 'Paid':
+            queryset = queryset.filter(bill__is_paid=True)
+        elif payment_filter == 'Unpaid':
+            queryset = queryset.filter(bill__is_paid=False)
+    # --- END OF NEW LOGIC ---
 
-    serializer = OrderSerializer(queryset, many=True)
+    serializer = DashboardOrderSerializer(queryset, many=True)
     return Response(serializer.data)
 
 
@@ -491,6 +529,8 @@ def create_and_pay_order(request):
             if discount_code:
                 try:
                     discount = Discount.objects.get(code__iexact=discount_code, is_active=True)
+                    if subtotal < discount.minimum_bill_amount:
+                        raise Exception(f"Bill total must be at least ₹{discount.minimum_bill_amount} to use this discount.")
                     bill.applied_discount = discount
                     if discount.discount_type == "PERCENTAGE":
                         discount_amount = (subtotal * discount.value) / Decimal("100")
@@ -537,3 +577,49 @@ def create_and_pay_order(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def export_orders_csv(request):
+    # This logic is identical to the filtering in your all_orders_list view
+    queryset = Order.objects.all().select_related('bill', 'customer').order_by('-created_at')
+    start_date = request.query_params.get('start_date')
+    end_date = request.query_params.get('end_date')
+    status_filter = request.query_params.get('status')
+    payment_filter = request.query_params.get('payment_status')
+
+    if start_date:
+        queryset = queryset.filter(created_at__date__gte=start_date)
+    if end_date:
+        queryset = queryset.filter(created_at__date__lte=end_date)
+    if status_filter:
+        queryset = queryset.filter(status=status_filter)
+    if payment_filter:
+        if payment_filter == 'Paid':
+            queryset = queryset.filter(bill__is_paid=True)
+        elif payment_filter == 'Unpaid':
+            # We need to handle cases where a bill might not exist yet
+            queryset = queryset.filter(bill__is_paid=False)
+
+    # --- CSV Generation Logic ---
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="orders_{timezone.now().strftime("%Y-%m-%d")}.csv"'
+
+    writer = csv.writer(response)
+    # Write the header row
+    writer.writerow(['Order ID', 'Customer Phone', 'Table', 'Status', 'Payment Status', 'Final Amount', 'Date'])
+
+    # Write data rows
+    for order in queryset:
+        writer.writerow([
+            order.id,
+            order.customer.phone_number if order.customer else 'N/A',
+            order.table_number,
+            order.status,
+            'Paid' if order.bill and order.bill.is_paid else 'Unpaid',
+            order.bill.final_amount if order.bill else '0.00',
+            order.created_at.strftime('%Y-%m-%d %H:%M')
+        ])
+
+    return response

@@ -86,45 +86,53 @@ const DiscountsPage = () => {
 
       <div className={styles.tableContainer}>
         <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Type</th>
-              <th>Value</th>
-              <th>Status</th>
-              <th>Requires Approval</th>
-              {/* --- NEW COLUMN HEADER --- */}
-              <th>Hidden</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {discounts.map(discount => (
-              <tr key={discount.id}>
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Type</th>
+            <th>Value</th>
+            <th>Minimum Spend</th> {/* <-- 1. ADD NEW HEADER */}
+            <th>Status</th>
+            <th>Requires Approval</th>
+            <th>Hidden</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {discounts.map(discount => (
+            <tr key={discount.id}>
                 <td>{discount.code}</td>
                 <td>{discount.discount_type}</td>
                 <td>{discount.discount_type === 'PERCENTAGE' ? `${discount.value}%` : `₹${discount.value}`}</td>
+                
+                {/* --- 2. ADD NEW CELL WITH CONDITIONAL LOGIC --- */}
                 <td>
-                  <span className={discount.is_active ? styles.active : styles.inactive}>
-                    {discount.is_active ? 'Active' : 'Inactive'}
-                  </span>
+                    {parseFloat(discount.minimum_bill_amount) > 0 
+                        ? `₹${parseFloat(discount.minimum_bill_amount).toFixed(2)}` 
+                        : 'N/A'
+                    }
+                </td>
+
+                <td>
+                    <span className={discount.is_active ? styles.active : styles.inactive}>
+                        {discount.is_active ? 'Active' : 'Inactive'}
+                    </span>
                 </td>
                 <td>{discount.requires_staff_approval ? 'Yes' : 'No'}</td>
-                {/* --- NEW COLUMN CELL --- */}
                 <td>{discount.is_hidden ? 'Yes' : 'No'}</td>
                 <td className={styles.actions}>
-                  <button className={styles.actionButton} onClick={() => handleOpenModal(discount)}><FiEdit /></button>
-                  <button 
-                    className={`${styles.actionButton} ${styles.deleteButton}`}
-                    onClick={() => handleDeleteDiscount(discount.id)}
-                  >
-                    <FiTrash2 />
-                  </button>
+                    <button className={styles.actionButton} onClick={() => handleOpenModal(discount)}><FiEdit /></button>
+                    <button 
+                        className={`${styles.actionButton} ${styles.deleteButton}`}
+                        onClick={() => handleDeleteDiscount(discount.id)}
+                    >
+                        <FiTrash2 />
+                    </button>
                 </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            </tr>
+        ))}
+    </tbody>
+</table>
       </div>
 
       <DiscountFormModal

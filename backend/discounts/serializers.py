@@ -14,6 +14,7 @@ class DiscountSerializer(serializers.ModelSerializer):
             'code', 
             'discount_type', 
             'value', 
+            'minimum_bill_amount',
             'is_active', 
             'requires_staff_approval',
             'is_hidden'

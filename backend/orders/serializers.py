@@ -9,7 +9,7 @@ from customers.models import Customer
 from .models import Order, OrderItem
 from billing.models import Bill
 from customers.serializers import CustomerSerializer
-
+from billing.serializers import BillSerializer
 # ====================================================================
 #  Token Serializer
 # ====================================================================
@@ -84,7 +84,7 @@ class MinimalBillSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     customer = CustomerSerializer(read_only=True)
     items = OrderItemSerializer(many=True, read_only=True)
-    bill = MinimalBillSerializer(read_only=True, allow_null=True)
+    bill = BillSerializer(read_only=True)
     payment_status = serializers.SerializerMethodField()
     total_amount = serializers.SerializerMethodField()
 

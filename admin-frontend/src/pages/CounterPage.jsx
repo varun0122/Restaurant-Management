@@ -143,6 +143,7 @@ const CounterPage = () => {
 
 
     const handleApplyDiscount = async () => {
+        const currentSubtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * item.quantity, 0);
         if (!discountCode.trim() || cart.length === 0) {
             setDiscountError('Please enter a code and add items to the cart first.');
             return;
@@ -153,7 +154,7 @@ const CounterPage = () => {
             const response = await apiClient.post('/billing/preview-discount/', {
                 code: discountCode,
                 cart_items: cart.map(item => ({ dish_id: item.id, quantity: item.quantity })),
-                subtotal: subtotal
+                subtotal: currentSubtotal
             });
             if (response.data.valid) {
                 setDiscountAmount(response.data.discount_amount);
@@ -318,6 +319,7 @@ const CounterPage = () => {
                                 placeholder="Enter discount code"
                                 onChange={e => setDiscountCode(e.target.value.toUpperCase())}
                                 disabled={isDiscountLoading}
+                                onKeyDown={(e) => e.key === 'Enter' && handleApplyDiscount()}
                             />
                             <button onClick={handleApplyDiscount} disabled={isDiscountLoading || !discountCode.trim()}>
                                 {isDiscountLoading ? 'Applying...' : 'Apply'}
@@ -367,6 +369,7 @@ const CounterPage = () => {
                 isOpen={isPaymentPromptOpen}
                 onClose={() => setIsPaymentPromptOpen(false)}
                 onFinalizePayment={handleFinalizePayment}
+                
                 // --- FIX: Removed the unused 'customers' prop ---
             />
         </div>

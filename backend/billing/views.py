@@ -15,7 +15,8 @@ from customers.serializers import CustomerSerializer
 from django.shortcuts import get_object_or_404
 from django.db.models import F
 from django.db import transaction
-
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 import logging
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,18 @@ def unpaid_bills_list(request):
 
 # billing/views.py
 # billing/views.py
+def broadcast_bill_update(message):
+    """
+    Sends a message to the 'unpaid_bills' WebSocket group.
+    """
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        'unpaid_bills',
+        {
+            'type': 'bill_update',
+            'message': message
+        }
+    )
 
 def update_bill_amounts(bill):
     subtotal = Decimal('0.00')
@@ -94,7 +107,7 @@ def mark_bill_as_paid(request, bill_id):
             # Refresh customer from DB to get the updated coin value for the response
             customer.refresh_from_db()
             logger.info(f"SUCCESS. Awarded {coins_earned} coins. New balance: {customer.loyalty_coins}")
-
+            broadcast_bill_update(f"Bill #{bill.id} was paid.") 
             return Response({
                 'message': f'Bill #{bill.id} marked as paid. Customer earned {coins_earned} coins.',
                 'customer': CustomerSerializer(customer).data
@@ -122,27 +135,36 @@ def apply_discount(request, bill_id):
     except Discount.DoesNotExist:
         return Response({'error': 'Invalid or inactive discount code.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    serialized_bill = BillSerializer(bill).data
-    total_amount = serialized_bill.get('total_amount')
+    # --- FIX STARTS HERE ---
 
-    if not total_amount:
-        return Response({'error': 'Total amount not available for this bill.'}, status=status.HTTP_400_BAD_REQUEST)
+    # 1. Get a fresh, reliable subtotal directly from the model
+    # (Assuming you have a method on your Bill model to calculate totals)
+    bill.recalculate_and_save() 
+    subtotal = bill.subtotal
 
-    try:
-        total_amount = Decimal(str(total_amount))
-    except InvalidOperation:
-        return Response({'error': 'Invalid total amount value.'}, status=status.HTTP_400_BAD_REQUEST)
+    # 2. Add the missing validation check
+    if subtotal < discount.minimum_bill_amount:
+        return Response({
+            'error': f"Bill subtotal must be at least ₹{discount.minimum_bill_amount} to use this discount."
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # --- END OF FIX ---
 
+    # Now, calculate the discount using the reliable subtotal
     if discount.discount_type == 'PERCENTAGE':
-        discount_amount = (total_amount * discount.value) / Decimal('100')
+        discount_amount = (subtotal * discount.value) / Decimal('100')
     else:
         discount_amount = discount.value
 
-    discount_amount = min(total_amount, discount_amount)
-
+    # Apply the discount
     bill.applied_discount = discount
-    bill.discount_amount = discount_amount
-    bill.save()
+    bill.discount_amount = min(subtotal, discount_amount)
+    
+    # Recalculate final totals and save
+    bill.recalculate_and_save()
+
+    # Broadcast the real-time update
+    broadcast_bill_update(f"Discount '{discount.code}' applied to bill #{bill.id}.")
 
     return Response(BillSerializer(bill).data)
 
@@ -217,6 +239,7 @@ def customer_apply_discount(request, bill_id):
             bill.applied_discount = discount
             bill.discount_amount = discount_amount
             bill.save()
+            broadcast_bill_update(f"Discount update for bill #{bill.id}.")
             return Response(BillSerializer(bill).data)
 
     except (Bill.DoesNotExist, Customer.DoesNotExist):
@@ -241,7 +264,7 @@ def customer_remove_discount(request, bill_id):
         bill.discount_amount = Decimal('0.00')
         bill.discount_request_pending = False
         bill.save()
-
+        broadcast_bill_update(f"Discount removed from bill #{bill.id}.")
         return Response(BillSerializer(bill).data)
 
     except (Bill.DoesNotExist, Customer.DoesNotExist):
@@ -297,7 +320,7 @@ class ApplyCoinsView(APIView):
         # Deduct used coins from customer balance
         customer.loyalty_coins -= coins_to_apply
         customer.save()
-
+        broadcast_bill_update(f"Coins applied to bill #{bill.id}.") 
         return Response({
             "message": f"{coins_to_apply} coins applied successfully",
             "coins_value": str(bill.coin_discount),
@@ -331,7 +354,7 @@ def remove_coins(request, bill_id):
     # Refund coins to customer
     customer.loyalty_coins += coins_redeemed
     customer.save()
-
+    broadcast_bill_update(f"Coins removed from bill #{bill.id}.")
     return Response({
         "message": f"Removed {coins_redeemed} coins from the bill.",
         "remaining_coins": customer.loyalty_coins,
@@ -347,6 +370,7 @@ def admin_remove_discount(request, bill_id):
         bill.discount_amount = Decimal('0.00')
         bill.discount_request_pending = False
         bill.save()
+        broadcast_bill_update(f"Admin removed discount from bill #{bill.id}.")
         return Response(BillSerializer(bill).data)
     except Bill.DoesNotExist:
         return Response({'error': 'Bill not found or already paid.'}, status=404)
@@ -360,7 +384,6 @@ def preview_discount(request):
     """
     data = request.data
     code = data.get('code', '').strip()
-    cart_items = data.get('cart_items', [])
     subtotal = data.get('subtotal')
 
     if not code:
@@ -376,6 +399,14 @@ def preview_discount(request):
     except Discount.DoesNotExist:
         return Response({'valid': False, 'error': 'Invalid or inactive discount code.'}, status=400)
 
+    # --- ADD THIS VALIDATION ---
+    if subtotal < discount.minimum_bill_amount:
+        return Response({
+            'valid': False, 
+            'error': f"Cart total must be at least ₹{discount.minimum_bill_amount} to use this discount."
+        }, status=400)
+    # --- END OF VALIDATION ---
+
     if discount.discount_type == 'PERCENTAGE':
         discount_amount = (subtotal * discount.value) / Decimal('100')
     else:
@@ -383,12 +414,11 @@ def preview_discount(request):
 
     discount_amount = min(subtotal, discount_amount)
 
-    # --- FIX IS HERE ---
     discount_metadata = {
         'code': discount.code,
-        # 'description': discount.description, # This line is removed to prevent the error
         'discount_type': discount.discount_type,
         'value': str(discount.value),
+        'minimum_bill_amount': str(discount.minimum_bill_amount)
     }
 
     return Response({

@@ -1,5 +1,20 @@
 /* DiscountFormModal.module.css */
+.modalContent {
+    --accent-color: #D4AF37; /* Define the variable */
+    --accent-color-hover: #E6C200;
+    --background-dark: #121212;
+    /* ... other styles */
+}
 
+/* Then, use the variable throughout the file */
+.formGroup input:focus,
+.formGroup select:focus {
+    border-color: var(--accent-color); /* Use the variable */
+}
+
+.saveButton {
+    background-color: var(--accent-color); /* Use the variable */
+}
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -156,4 +171,10 @@
   background-color: #E6C200; /* Brighter gold */
   box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
   transform: translateY(-2px);
+}
+/* At the bottom of the file */
+@media (max-width: 550px) {
+    .formGrid {
+        grid-template-columns: 1fr; /* Switch to a single column layout */
+    }
 }

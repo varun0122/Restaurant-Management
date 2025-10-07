@@ -7,6 +7,7 @@ const DiscountFormModal = ({ isOpen, onClose, onSave, discount }) => {
     code: '',
     discount_type: 'PERCENTAGE',
     value: '',
+    minimum_bill_amount: '',
     is_active: true,
     requires_staff_approval: false,
     is_hidden: false, // --- 1. Add 'is_hidden' to the default state ---
@@ -57,6 +58,17 @@ const DiscountFormModal = ({ isOpen, onClose, onSave, discount }) => {
               <label>Value</label>
               <input type="number" name="value" value={formData.value || ''} onChange={handleChange} required step="0.01" />
             </div>
+            <div className={styles.formGroup}>
+                <label>Minimum Bill Amount (Set to 0 for no minimum)</label>
+                <input
+                    type="number"
+                    name="minimum_bill_amount"
+                    value={formData.minimum_bill_amount || ''}
+                    onChange={handleChange}
+                    step="0.01"
+                    placeholder="e.g., 500"
+                />
+                </div>
           </div>
           <div className={styles.checkboxGrid}>
             <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>

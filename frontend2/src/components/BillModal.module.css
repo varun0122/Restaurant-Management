@@ -1,246 +1,206 @@
-/* BillModal.module.css */
-
 .modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8); /* Darker backdrop */
-  backdrop-filter: blur(5px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 3000;
-  padding: 1rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 1rem;
 }
 
 .modalContent {
-  position: relative;
-  background: #1E1E1E; /* Dark charcoal background */
-  color: #F5F5F5; /* Soft white text */
-  padding: 2rem;
-  border-radius: 8px;
-  max-width: 450px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  border: 1px solid #333;
+    background: #2a2a3e;
+    color: #f5f5f5;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border: 1px solid #4a4a6a;
+    position: relative;
 }
 
 .closeButton {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  background: none;
-  border: none;
-  font-size: 2rem;
-  cursor: pointer;
-  color: #aaa;
-  transition: color 0.2s ease;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #a0a0b8;
+    font-size: 2rem;
+    cursor: pointer;
+    line-height: 1;
 }
 
-.closeButton:hover {
-  color: #D4AF37; /* Gold on hover */
+.loadingText, .error {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.error {
+    color: #ff8a80;
 }
 
 .modalContent h3 {
-  margin-top: 0;
-  text-align: center;
-  font-size: 1.5rem;
-  color: #FFFFFF; /* Brighter white for heading */
+    margin-top: 0;
+    text-align: center;
 }
 
 .billId {
-  text-align: center;
-  color: #888;
-  margin-bottom: 1.5rem;
-  font-size: 0.9rem;
-}
-
-.itemsSection {
-  margin-bottom: 1.5rem;
-}
-
-.itemsSection h4 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  border-bottom: 1px solid #3a3a3a;
-  padding-bottom: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.itemList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.itemList li {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
+    text-align: center;
+    color: #a0a0b8;
+    margin-top: -10px;
+    margin-bottom: 2rem;
 }
 
 .totalsSection {
-  border-top: 1px solid #3a3a3a;
-  padding-top: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .totalRow {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    font-size: 1rem;
+}
+
+.discount {
+    color: #81c784; /* Green for savings */
 }
 
 .grandTotal {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-top: 0.5rem;
-  color: #D4AF37; /* Gold for the grand total */
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    padding-top: 15px;
 }
 
-.totalsSection .discount {
-  color: #D4AF37; /* Gold for discount text */
+.divider {
+    border: 0;
+    border-top: 1px solid #4a4a6a;
+    margin: 10px 0;
 }
 
-.discountContainer {
-  padding: 1.5rem 0;
-  border-top: 1px solid #3a3a3a;
+.loyaltySection, .discountContainer {
+    background-color: #32324e;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.loyaltySection p {
+    margin: 0 0 1rem;
+}
+
+.applyButton, .removeButton {
+    padding: 0.5rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.applyButton {
+    background-color: #7b4dff;
+    color: white;
+}
+
+.applyButton:hover:not(:disabled) {
+    background-color: #6a3ad6;
+}
+
+.applyButton:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+.removeButton {
+    background-color: #555;
+    color: #eee;
 }
 
 .offersHeader {
-  background: none;
-  border: none;
-  padding: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #D4AF37; /* Gold for interactive text */
-  margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    background: none;
+    border: none;
+    color: #f5f5f5;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+}
+
+.expanderIcon {
+    font-size: 1.5rem;
+    line-height: 1;
 }
 
 .offersList {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease-in-out;
-  font-size: 0.9rem;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
 }
 
 .offersList.expanded {
-  max-height: 200px;
-  overflow-y: auto;
+    max-height: 200px; /* Adjust as needed */
+    overflow-y: auto;
+    margin-top: 1rem;
 }
 
 .offersList ul {
-  list-style: none;
-  padding-left: 0;
-  margin-top: 0.5rem;
-  border-top: 1px solid #3a3a3a;
-  padding-top: 1rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 .offersList li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-  color: #ccc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #4a4a6a;
 }
 
-.offersList li span {
-  font-style: italic;
-  color: #D4AF37;
+.offersList li:last-child {
+    border-bottom: none;
 }
 
-.offerApplyButton {
-  padding: 0.25rem 0.75rem;
-  border: 1px solid #D4AF37;
-  background: transparent;
-  color: #D4AF37;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: background-color 0.2s ease, color 0.2s ease;
+.offerInfo {
+    text-align: left;
 }
 
-.offerApplyButton:hover {
-  background-color: rgba(212, 175, 55, 0.1);
+.eligibilityError {
+    color: #ffab40;
+    display: block;
+    font-size: 0.8rem;
 }
 
-.discountInputSection {
-  display: flex;
-  gap: 0.5rem;
+.offerButton {
+    background-color: #7b4dff;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
 }
 
-.discountInputSection input {
-  flex-grow: 1;
-  padding: 0.75rem;
-  border: 1px solid #444;
-  background-color: #121212;
-  color: #F5F5F5;
-  border-radius: 4px;
-}
-
-.discountInputSection button {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  background-color: #D4AF37;
-  color: #121212;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.2s ease;
-}
-.discountInputSection button:hover {
-  background-color: #E6C200;
-}
-
-.discountApplied, .pendingMessage {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 500;
-  padding: 1rem;
-  border-radius: 4px;
+.offerButton:disabled {
+    background-color: #555;
+    cursor: not-allowed;
 }
 
 .discountApplied {
-  color: #D4AF37;
-  background-color: rgba(212, 175, 55, 0.1);
-  border: 1px solid rgba(212, 175, 55, 0.2);
-}
-
-.pendingMessage {
-  color: #e67e22; /* Keep orange for pending, it stands out well */
-  background-color: rgba(230, 126, 34, 0.1);
-  border: 1px solid rgba(230, 126, 34, 0.2);
-}
-
-.removeDiscountButton {
-  background: none;
-  border: 1px solid #e74c3c;
-  color: #e74c3c;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.8rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.removeDiscountButton:hover {
-  background-color: rgba(231, 76, 60, 0.1);
-}
-
-.footer {
-  padding-top: 1.5rem;
-  text-align: center;
-  border-top: 1px solid #3a3a3a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }

@@ -4,16 +4,16 @@ from rest_framework import serializers
 from django.db.models import Sum, F, DecimalField
 from .models import Bill
 from orders.models import OrderItem
-from orders.serializers import OrderSerializerForBilling
 from discounts.serializers import DiscountSerializer
 from decimal import Decimal
 
 class BillSerializer(serializers.ModelSerializer):
-    orders = OrderSerializerForBilling(many=True, read_only=True)
+    
     total_amount = serializers.SerializerMethodField()
     table_number = serializers.CharField(source='table.table_number', read_only=True)
     applied_discount = DiscountSerializer(read_only=True)
     bill_status = serializers.SerializerMethodField()
+    orders = serializers.SerializerMethodField()
 
     class Meta:
         model = Bill
@@ -23,7 +23,12 @@ class BillSerializer(serializers.ModelSerializer):
             'discount_request_pending', 'bill_status','subtotal',
             'tax_amount',
         ]
-
+    def get_orders(self, obj):
+        # Import is done locally, only when this function is called
+        from orders.serializers import OrderSerializerForBilling
+        queryset = obj.orders.all()
+        serializer = OrderSerializerForBilling(queryset, many=True)
+        return serializer.data
     def get_total_amount(self, obj):
         total = OrderItem.objects.filter(order__bill=obj).aggregate(
             total=Sum(F('quantity') * F('dish__price'), output_field=DecimalField())

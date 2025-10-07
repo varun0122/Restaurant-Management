@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useWebSocket from 'react-use-websocket';
 import apiClient from '../api/axiosConfig';
 import styles from './BillingPage.module.css';
 import PrintableBill from '../components/PrintableBill';
@@ -8,7 +9,8 @@ const BillingPage = () => {
   const [loading, setLoading] = useState(true);
   const [discountCodes, setDiscountCodes] = useState({});
   const [billToPrint, setBillToPrint] = useState(null);
-
+  const socketUrl = 'ws://127.0.0.1:8000/ws/billing/';
+  const { lastMessage } = useWebSocket(socketUrl);
   const fetchUnpaidBills = async () => {
     // We keep the initial load indicator, but subsequent fetches will be silent.
     try {
@@ -27,19 +29,18 @@ const BillingPage = () => {
   // ======================= FIX START =======================
   // This useEffect now handles the initial fetch and sets up polling.
   useEffect(() => {
-    fetchUnpaidBills(); // Fetch data immediately on component mount.
-
-    // Set up an interval to poll for changes every 5 seconds.
-    const pollInterval = setInterval(fetchUnpaidBills, 5000); // 5000ms = 5 seconds
-
-    // This is a crucial cleanup function.
-    // It stops the polling when the component is unmounted to prevent memory leaks.
-    return () => {
-      clearInterval(pollInterval);
-    };
-  }, []); // The empty dependency array [] ensures this runs only once on mount.
+        fetchUnpaidBills(); // Fetch initial data once on mount
+    }, []); // The empty dependency array [] ensures this runs only once on mount.
   // ======================== FIX END ========================
-
+    useEffect(() => {
+        if (lastMessage !== null) {
+            const data = JSON.parse(lastMessage.data);
+            // If the backend sends a 'bill_update' message, refetch the data
+            if (data.type === 'bill_update') {
+                fetchUnpaidBills();
+            }
+        }
+    }, [lastMessage]); 
   const handleMarkAsPaid = async (billId) => {
     if (window.confirm(`Are you sure you want to mark bill #${billId} as paid?`)) {
       try {

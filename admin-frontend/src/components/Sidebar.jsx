@@ -27,7 +27,7 @@ const Sidebar = ({ isOpen, setIsOpen}) => {
             {/* Links for all staff */}
             <NavLink to="/pos" className={({ isActive }) => isActive ? styles.active : ''}>POS / New Order</NavLink>
             <NavLink to="/kitchen" className={({ isActive }) => isActive ? styles.active : ''}>Kitchen View</NavLink>
-
+             <NavLink to="/counter" className={({ isActive }) => isActive ? styles.active : ''}>Counter</NavLink> 
             {/* Superuser-only links */}
             {user && user.is_superuser && (
               <>

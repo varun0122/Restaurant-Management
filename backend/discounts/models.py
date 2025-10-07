@@ -14,6 +14,12 @@ class Discount(models.Model):
     code = models.CharField(max_length=20, unique=True, help_text="The code customers or staff will enter (e.g., STUDENT15, DIWALI20).")
     discount_type = models.CharField(max_length=10, choices=DISCOUNT_TYPE_CHOICES)
     value = models.DecimalField(max_digits=10, decimal_places=2, help_text="The percentage (e.g., 15 for 15%) or the fixed amount (e.g., 50 for ₹50).")
+    minimum_bill_amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=0, 
+        help_text="The minimum bill subtotal required to apply this discount. Set to 0 for no minimum."
+    )
     is_active = models.BooleanField(default=True, help_text="Only active discounts can be applied.")
     
     # This flag is for special offers like student discounts
