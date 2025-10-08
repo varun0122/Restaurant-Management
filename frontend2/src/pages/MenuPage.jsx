@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useCart } from '../context/CartContext';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 import AddItemModal from '../components/AddItemModal';
 import ViewCartBar from '../components/ViewCartBar';
 import styles from './MenuPage.module.css';
+import toast from 'react-hot-toast';
 
 const groupDishesByCategory = (dishes) => {
   const grouped = {};
@@ -16,8 +18,26 @@ const groupDishesByCategory = (dishes) => {
   });
   return grouped;
 };
+const FeaturedDish = ({ dish, setModalDish }) => {
+    const isAvailable = dish.is_available;
 
-const MenuPage = ({ cart, setCart, searchTerm, selectedFoodType }) => {
+    const handleClick = () => {
+        if (isAvailable) {
+            setModalDish(dish);
+        } else {
+            toast.error(`${dish.name} is currently unavailable.`);
+        }
+    };
+
+    return (
+        <div className={`${styles.likedCard} ${!isAvailable ? styles.unavailableFeatured : ''}`} onClick={handleClick}>
+            <img src={`http://127.0.0.1:8000${dish.image_url}`} alt={dish.name} />
+            <p>{dish.name}</p>
+            {!isAvailable && <div className={styles.unavailableOverlay}>Unavailable</div>}
+        </div>
+    );
+};
+const MenuPage = ({ searchTerm, selectedFoodType }) => {
   const [menu, setMenu] = useState([]);
   const [specials, setSpecials] = useState([]);
   const [mostLiked, setMostLiked] = useState([]);
@@ -69,71 +89,44 @@ const MenuPage = ({ cart, setCart, searchTerm, selectedFoodType }) => {
 
   const filteredMenu = filterDishes(menu);
   const filteredSpecials = filterDishes(specials);
+  const filteredMostLiked = filterDishes(mostLiked);
 
   if (loading) return <div className={styles.loader}>Loading menu...</div>;
 
-  const DishCard = ({ dish }) => {
+  const DishCard = ({ dish, setModalDish }) => {
+    const { cart, addToCart, increaseQuantity, decreaseQuantity } = useCart();
     const itemInCart = cart.find(i => i.id === dish.id);
     const quantity = itemInCart ? itemInCart.quantity : 0;
 
-    const handleAddClick = () => {
-      const updatedCart = cart.find(i => i.id === dish.id)
-        ? cart.map(i => i.id === dish.id ? { ...i, quantity: i.quantity + 1 } : i)
-        : [...cart, { ...dish, quantity: 1 }];
-      setCart(updatedCart);
-      localStorage.setItem('cart', JSON.stringify(updatedCart));
-    };
-
-    const handleRemoveClick = () => {
-        const updatedCart = cart
-            .map(i => i.id === dish.id ? { ...i, quantity: i.quantity - 1 } : i)
-            .filter(i => i.quantity > 0);
-        setCart(updatedCart);
-        localStorage.setItem('cart', JSON.stringify(updatedCart));
-    };
-
     return (
-      <div className={`${styles.dishCard} ${!dish.is_available ? styles.unavailable : ''}`}>
-        {dish.image_url && (
-          <img src={`http://127.0.0.1:8000${dish.image_url}`} alt={dish.name} />
-        )}
-        <div className={styles.dishInfo}>
-          <h5>{dish.name}</h5>
-          <p>₹{dish.price}</p>
-        </div>
-        {dish.is_available ? (
-          quantity > 0 ? (
-            <div className="d-flex align-items-center justify-content-between mt-2">
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={handleRemoveClick}
-              >
-                −
-              </button>
-              <span style={{ fontWeight: 'bold', margin: '0 8px' }}>{quantity}</span>
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={handleAddClick}
-              >
-                +
-              </button>
+        <div className={`${styles.dishCard} ${!dish.is_available ? styles.unavailable : ''}`}>
+            <div className={styles.dishContent} onClick={() => setModalDish(dish)}>
+                {dish.image_url && (
+                    <img src={`http://127.0.0.1:8000${dish.image_url}`} alt={dish.name} />
+                )}
+                <div className={styles.dishInfo}>
+                    <h5>{dish.name}</h5>
+                    <p>₹{dish.price}</p>
+                </div>
             </div>
-          ) : (
-            <button
-              className="btn btn-success btn-sm mt-2"
-              onClick={() => setModalDish(dish)} // Open modal on first add
-            >
-              Add to Cart
-            </button>
-          )
-        ) : (
-          <button disabled className="btn btn-danger btn-sm mt-2">
-            Unavailable
-          </button>
-        )}
-      </div>
+            {dish.is_available ? (
+                quantity > 0 ? (
+                    <div className={styles.quantityControl}>
+                        <button onClick={() => decreaseQuantity(dish.id)}>−</button>
+                        <span>{quantity}</span>
+                        <button onClick={() => increaseQuantity(dish.id)}>+</button>
+                    </div>
+                ) : (
+                    <button className={styles.addButton} onClick={() => addToCart(dish)}>
+                        Add
+                    </button>
+                )
+            ) : (
+                <button disabled className={styles.unavailableButton}>Unavailable</button>
+            )}
+        </div>
     );
-  };
+};
 
   return (
     <div className={styles.container}>
@@ -143,15 +136,8 @@ const MenuPage = ({ cart, setCart, searchTerm, selectedFoodType }) => {
           <h3 className={styles.sectionTitle}>🔥 Today's Specials</h3>
           <div className={styles.horizontalScroll}>
             {filteredSpecials.map(dish => (
-              <div
-                key={dish.id}
-                className={styles.likedCard}
-                onClick={() => setModalDish(dish)}
-              >
-                <img src={`http://127.0.0.1:8000${dish.image_url}`} alt={dish.name} />
-                <p>{dish.name}</p>
-              </div>
-            ))}
+                            <FeaturedDish key={dish.id} dish={dish} setModalDish={setModalDish} />
+                        ))}
           </div>
         </div>
       )}
@@ -163,15 +149,8 @@ const MenuPage = ({ cart, setCart, searchTerm, selectedFoodType }) => {
           <h3 className={styles.sectionTitle}>⭐ Most Popular</h3>
           <div className={styles.horizontalScroll}>
             {mostLiked.map(dish => (
-              <div 
-                key={dish.id} 
-                className={styles.likedCard}
-                onClick={() => setModalDish(dish)}
-              >
-                <img src={`http://127.0.0.1:8000${dish.image_url}`} alt={dish.name} />
-                <p>{dish.name}</p>
-              </div>
-            ))}
+                            <FeaturedDish key={dish.id} dish={dish} setModalDish={setModalDish} />
+                        ))}
           </div>
         </div>
       )}
@@ -184,9 +163,10 @@ const MenuPage = ({ cart, setCart, searchTerm, selectedFoodType }) => {
             <div key={categoryName}>
               <h4 className={styles.categoryHeader}>{categoryName}</h4>
               <div className={styles.menuGrid}>
-                {dishes.map(dish => (
-                  <DishCard key={dish.id} dish={dish} />
-                ))}
+               {dishes.map(dish => (
+                                // --- FIX IS HERE (passing setModalDish) ---
+                                <DishCard key={dish.id} dish={dish} setModalDish={setModalDish} />
+                            ))}
               </div>
             </div>
           ))
@@ -203,18 +183,10 @@ const MenuPage = ({ cart, setCart, searchTerm, selectedFoodType }) => {
         )}
       </div>
 
-      {/* Add Item Modal */}
-      {modalDish && (
-        <AddItemModal
-          dish={modalDish}
-          cart={cart}
-          setCart={setCart}
-          onClose={() => setModalDish(null)}
-        />
-      )}
+      {modalDish && (<AddItemModal dish={modalDish} onClose={() => setModalDish(null)} />)}
 
       {/* View Cart Bar */}
-      <ViewCartBar cart={cart} />
+      <ViewCartBar />
     </div>
   );
 };

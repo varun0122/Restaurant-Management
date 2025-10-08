@@ -192,25 +192,25 @@ def dashboard_summary(request):
     total_dishes_count = Dish.objects.count()
 
     # --- CORRECTED REVENUE CALCULATION (PAID TODAY) ---
-    paid_revenue_today = Order.objects.filter(
-        bill__is_paid=True,
-        bill__paid_at__date=today
-    ).exclude(status='Cancelled').aggregate(
-        total=Sum('bill__final_amount')
+    paid_revenue_today = Bill.objects.filter(
+        is_paid=True,
+        paid_at__date=today
+    ).exclude(orders__status='Cancelled').aggregate(
+        total=Sum('final_amount')
     )['total'] or Decimal('0.00')
 
     # --- UNPAID REVENUE CALCULATION ---
-    unpaid_revenue = Order.objects.filter(
-        bill__is_paid=False
-    ).exclude(status='Cancelled').aggregate(
-        total=Sum('bill__final_amount')
+    unpaid_revenue = Bill.objects.filter(
+        is_paid=False
+    ).exclude(orders__status='Cancelled').aggregate(
+        total=Sum('final_amount')
     )['total'] or Decimal('0.00')
 
-    total_discounts_today = Order.objects.filter(
-        bill__is_paid=True,
-        bill__paid_at__date=today
-    ).exclude(status='Cancelled').aggregate(
-        total=Sum('bill__discount_amount')
+    total_discounts_today = Bill.objects.filter(
+        is_paid=True,
+        paid_at__date=today
+    ).exclude(orders__status='Cancelled').aggregate(
+        total=Sum('discount_amount')
     )['total'] or Decimal('0.00')
     
     # --- CORRECTED WEEKLY SALES FOR THE GRAPH ---
@@ -328,58 +328,58 @@ def kitchen_display_orders(request):
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def update_order_status(request, order_id):
+    print(f"\n--- TRIGGERED update_order_status for Order ID: {order_id} ---")
+    
     try:
         order = Order.objects.get(id=order_id)
-        
-        # ... (Your business day logic and validation checks remain here)
-        # ...
+    except Order.DoesNotExist:
+        return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        new_status = request.data.get('status')
-        valid_statuses = [s[0] for s in ORDER_STATUS]
-        if new_status not in valid_statuses:
-            return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # --- Transaction Block Starts ---
-        # This ensures updating the status and handling the bill happen together.
+    new_status = request.data.get('status')
+    print(f"New status requested: '{new_status}'")
+    
+    valid_statuses = [s[0] for s in ORDER_STATUS]
+    if new_status not in valid_statuses:
+        return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
         with transaction.atomic():
             order.status = new_status
             
             if new_status and new_status.lower() == 'served':
-                table = Table.objects.get(table_number=order.table_number)
+                print("Status is 'Served'. Handling bill creation/linking...")
+                table, _ = Table.objects.get_or_create(table_number=order.table_number)
                 active_bill, created = Bill.objects.get_or_create(table=table, is_paid=False)
+                print(f"Retrieved Bill ID: {active_bill.id}. Was it newly created? {created}")
+                
+                print("1. Linking order to bill...")
                 order.bill = active_bill
-            
-            order.save()
-        # --- Transaction Block Ends and is Committed ---
-
-        # --- Broadcasting is done AFTER the transaction is safely committed ---
+                
+                print("2. Saving the order to commit the link...")
+                order.save() 
+                
+                print("3. Calling recalculate_and_save() on the bill...")
+                active_bill.recalculate_and_save()
+                print("4. Finished calling recalculate_and_save().")
+            else:
+                order.save()
+        
+        print("--- update_order_status finished successfully ---")
+        
         channel_layer = get_channel_layer()
-        serialized_order = OrderSerializer(order).data
-
-        # Broadcast to admin/kitchen group
-        async_to_sync(channel_layer.group_send)(
-            'kitchen_orders',
-            {'type': 'order_update', 'order': serialized_order}
-        )
-
-        # Broadcast to specific customer group
+        serialized_order = DashboardOrderSerializer(order).data
+        message = {'type': 'order_update', 'order': serialized_order}
+        
+        async_to_sync(channel_layer.group_send)('kitchen_orders', message)
         if order.customer:
-            customer_group = f"customer_{order.customer.id}"
-            async_to_sync(channel_layer.group_send)(
-                customer_group,
-                {'type': 'order_update', 'order': serialized_order}
-            )
-            
+            async_to_sync(channel_layer.group_send)(f'customer_{order.customer.id}', message)
+        
+        # --- THIS IS THE FIX FOR THE CRASH ---
         return Response(serialized_order)
 
-    except Order.DoesNotExist:
-        return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
-    except Table.DoesNotExist:
-        return Response({'error': f'Table {order.table_number} not found.'}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
-        # This will catch any other unexpected errors
-        return Response({'error': 'An unexpected error occurred.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        print(f"!!! ERROR in update_order_status: {str(e)} !!!")
+        return Response({'error': f'An unexpected error occurred: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
@@ -486,15 +486,23 @@ def dashboard_recent_orders(request):
         output_field=IntegerField(),
     )
     
-    orders = Order.objects.filter(created_at__date=today).select_related(
-        'bill', 'customer'
-    ).prefetch_related('items__dish').annotate(
-        status_order=status_order
-    ).order_by('status_order', '-created_at')
+    all_todays_orders = Order.objects.filter(
+        created_at__date=today,
+        bill__isnull=False
+    ).select_related('bill', 'customer').order_by('-created_at')
 
-    # ✨ Use the new, correct serializer
-    serializer = DashboardOrderSerializer(orders, many=True)
+    # Use a dictionary to keep only the first order we see for each unique bill
+    unique_orders_dict = {}
+    for order in all_todays_orders:
+        if order.bill_id not in unique_orders_dict:
+            unique_orders_dict[order.bill_id] = order
+    
+    # The final list contains only one order per bill
+    unique_orders = list(unique_orders_dict.values())
+    
+    serializer = DashboardOrderSerializer(unique_orders, many=True)
     return Response(serializer.data)
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])  # requires JWT token
 def create_and_pay_order(request):

@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext'; 
 import styles from './ViewCartBar.module.css';
 
-const ViewCartBar = ({ cart }) => {
+const ViewCartBar = () => {
+  const { cart } = useCart();
   if (cart.length === 0) {
     return null;
   }

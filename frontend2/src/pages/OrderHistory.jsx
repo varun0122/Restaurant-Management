@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'; 
+import { useCart } from '../context/CartContext';
 import axios from 'axios'; 
 import styles from './OrderHistory.module.css'; // We'll create this new CSS file
-
-const OrderHistory = ({ onAddToCart }) => { 
+import toast from 'react-hot-toast';
+const OrderHistory = () => { 
+  const { addToCart } = useCart();
   const [orders, setOrders] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -49,21 +51,17 @@ const OrderHistory = ({ onAddToCart }) => {
     setShowModal(true); 
   }; 
 
-  const handleRepeatToCart = () => { 
-    const selectedItems = selectedOrderItems.filter(item => checkedItems[item.id]); 
-    if (onAddToCart) { 
-      selectedItems.forEach(item => { 
-        onAddToCart({ 
-          ...item.dish, 
-          quantity: item.quantity 
-        }); 
-      }); 
-      alert("Selected dishes added to cart!"); 
-    } else { 
-      alert("Add to Cart function is not available"); 
-    } 
-    setShowModal(false); 
-  }; 
+  const handleRepeatToCart = () => {
+        const selectedItems = selectedOrderItems.filter(item => checkedItems[item.id]);
+        
+        selectedItems.forEach(item => {
+            // 4. This now calls the flexible addToCart from the context, which works correctly
+            addToCart(item.dish, item.quantity);
+        });
+        toast.success("Selected dishes added to cart!");
+        
+        setShowModal(false);
+    };
 
   const calculateOrderTotal = (items) => {
     return items.reduce((total, item) => total + (item.dish.price * item.quantity), 0);
@@ -87,9 +85,11 @@ const OrderHistory = ({ onAddToCart }) => {
             >
                 {order.status === 'Cancelled' ? 'Cancelled' : 'Paid'}
             </span>
-              <button className="btn btn-primary btn-sm" onClick={() => openRepeatModal(order.items)}> 
-                Repeat Order 
-              </button> 
+              {order.status !== 'Cancelled' && (
+                                <button className="btn btn-primary btn-sm" onClick={() => openRepeatModal(order.items)}>
+                                    Repeat Order
+                                </button>
+                            )}
             </div> 
             <ul className="list-group list-group-flush"> 
               {order.items.map(item => ( 

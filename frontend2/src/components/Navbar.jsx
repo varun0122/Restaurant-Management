@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 import styles from './Navbar.module.css';
 import { FiShoppingCart, FiUser, FiTruck, FiList, FiHome, FiSearch } from 'react-icons/fi';
 
@@ -10,7 +11,8 @@ const baseMenuItems = [
 ];
 
 // The Navbar now also accepts the `cart` prop
-const Navbar = ({ customer, cart, searchTerm, setSearchTerm, showSearch, openLoginModal }) => {
+const Navbar = ({ customer, searchTerm, setSearchTerm, showSearch, openLoginModal }) => {
+    const { cart } = useCart(); 
     const location = useLocation();
     const isAuthenticated = !!customer;
 

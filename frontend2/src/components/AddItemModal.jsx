@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import styles from './AddItemModal.module.css';
+import { useCart } from '../context/CartContext';
 
-const AddItemModal = ({ dish, cart, setCart, onClose }) => {
+const AddItemModal = ({ dish, onClose }) => {
+  const { cart, setCart } = useCart(); 
   const existingItem = cart.find(item => item.id === dish.id);
   const [quantity, setQuantity] = useState(existingItem ? existingItem.quantity : 1);
 

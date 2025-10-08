@@ -36,31 +36,31 @@ class Bill(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(null=True, blank=True)
     def recalculate_and_save(self):
+        print(f"\n--- Recalculating Bill ID: {self.id} ---")
+        
+        # Let's check how many orders are linked to this bill AT THIS MOMENT
+        order_count = self.orders.count()
+        print(f"Found {order_count} orders linked to this bill.")
+
         subtotal_agg = self.orders.aggregate(
             total=Sum(F('items__quantity') * F('items__dish__price'))
         )
         subtotal = subtotal_agg['total'] or Decimal('0.00')
-        
+        print(f"Calculated Subtotal: {subtotal}")
 
-        # Step 2: Calculate the total discount first
+        # ... (rest of the calculation logic is fine)
         total_discount = (self.discount_amount or Decimal('0.00')) + (self.coin_discount or Decimal('0.00'))
-
-        # Step 3: Calculate the price AFTER discount
         discounted_subtotal = max(Decimal('0.00'), subtotal - total_discount)
-        
-        # Step 4: Calculate tax on the discounted subtotal
         TAX_RATE = Decimal('0.05')
         tax_amount = discounted_subtotal * TAX_RATE
-
-        # Step 5: Calculate the final amount
         final_amount = discounted_subtotal + tax_amount
-        if final_amount < 0:
-            final_amount = Decimal('0.00')
-
-        # Step 6: Update and save the final, correct values
+        
         self.subtotal = subtotal.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         self.tax_amount = tax_amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         self.final_amount = final_amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        
+        print(f"Final Amount to be saved: {self.final_amount}")
+        print("--- Finished Recalculating ---\n")
         
         self.save()
     def __str__(self):

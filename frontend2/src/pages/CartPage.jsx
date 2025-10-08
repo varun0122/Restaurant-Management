@@ -1,11 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 import styles from './CartPage.module.css'; // Create this CSS file for styling
 import apiClient from '../api/axiosConfig';
 import toast from 'react-hot-toast';
 
 // The component now expects `customer` and `requestLogin` from App.jsx
-const CartPage = ({ cart, setCart, customer, requestLogin, onOrderPlaced }) => {
+const CartPage = ({customer, requestLogin, onOrderPlaced }) => {
+  const { cart, setCart } = useCart(); 
   const navigate = useNavigate();
 
   // REMOVED: No more local state for the login modal

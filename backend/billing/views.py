@@ -16,11 +16,39 @@ from django.shortcuts import get_object_or_404
 from django.db.models import F
 from django.db import transaction
 from channels.layers import get_channel_layer
+from orders.serializers import DashboardOrderSerializer 
 from asgiref.sync import async_to_sync
 import logging
 
 logger = logging.getLogger(__name__)
 
+
+
+
+
+# billing/views.py
+# billing/views.py
+def broadcast_bill_and_order_updates(message, bill):
+    """
+    Broadcasts updates to both the billing channel and the order/dashboard channel.
+    """
+    channel_layer = get_channel_layer()
+    
+    # 1. Broadcast to the general billing page
+    async_to_sync(channel_layer.group_send)(
+        'unpaid_bills',
+        {'type': 'bill_update', 'message': message}
+    )
+    
+    # 2. Broadcast an order_update message for each affected order to update the dashboard
+    for order in bill.orders.all():
+        serialized_order = DashboardOrderSerializer(order).data
+        order_message = {'type': 'order_update', 'order': serialized_order}
+        
+        async_to_sync(channel_layer.group_send)('kitchen_orders', order_message)
+        
+        if order.customer:
+            async_to_sync(channel_layer.group_send)(f'customer_{order.customer.id}', order_message)
 
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
@@ -28,22 +56,6 @@ def unpaid_bills_list(request):
     unpaid_bills = Bill.objects.filter(is_paid=False).order_by('created_at')
     serializer = BillSerializer(unpaid_bills, many=True)
     return Response(serializer.data)
-
-
-# billing/views.py
-# billing/views.py
-def broadcast_bill_update(message):
-    """
-    Sends a message to the 'unpaid_bills' WebSocket group.
-    """
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        'unpaid_bills',
-        {
-            'type': 'bill_update',
-            'message': message
-        }
-    )
 
 def update_bill_amounts(bill):
     subtotal = Decimal('0.00')
@@ -53,7 +65,7 @@ def update_bill_amounts(bill):
     tax = subtotal * Decimal('0.05')
     bill.subtotal = subtotal
     bill.tax_amount = tax
-    bill.save()
+    bill.recalculate_and_save()
 
 @api_view(['PATCH'])
 @permission_classes([IsAdminUser])
@@ -85,7 +97,7 @@ def mark_bill_as_paid(request, bill_id):
             logger.info(f"Customer found -> {customer.phone_number}")
             logger.info(f"Final amount to check -> {bill.final_amount}")
 
-            if bill.final_amount <= 0:
+            if customer and bill.final_amount <= 0:
                 logger.info("Final amount is zero, so no coins will be awarded.")
                 bill.is_paid = True
                 bill.paid_at = timezone.now()
@@ -107,7 +119,7 @@ def mark_bill_as_paid(request, bill_id):
             # Refresh customer from DB to get the updated coin value for the response
             customer.refresh_from_db()
             logger.info(f"SUCCESS. Awarded {coins_earned} coins. New balance: {customer.loyalty_coins}")
-            broadcast_bill_update(f"Bill #{bill.id} was paid.") 
+            broadcast_bill_and_order_updates(f"Bill #{bill.id} was paid.",bill) 
             return Response({
                 'message': f'Bill #{bill.id} marked as paid. Customer earned {coins_earned} coins.',
                 'customer': CustomerSerializer(customer).data
@@ -164,7 +176,7 @@ def apply_discount(request, bill_id):
     bill.recalculate_and_save()
 
     # Broadcast the real-time update
-    broadcast_bill_update(f"Discount '{discount.code}' applied to bill #{bill.id}.")
+    broadcast_bill_and_order_updates(f"Discount '{discount.code}' applied to bill #{bill.id}.",bill)
 
     return Response(BillSerializer(bill).data)
 
@@ -226,7 +238,7 @@ def customer_apply_discount(request, bill_id):
 
         if discount.requires_staff_approval:
             bill.discount_request_pending = True
-            bill.save()
+            bill.recalculate_and_save()
             return Response({'message': 'Discount requested. A staff member will verify it at your table.'})
         else:
             total_amount = Decimal(BillSerializer(bill).data.get('total_amount', 0))
@@ -238,8 +250,8 @@ def customer_apply_discount(request, bill_id):
 
             bill.applied_discount = discount
             bill.discount_amount = discount_amount
-            bill.save()
-            broadcast_bill_update(f"Discount update for bill #{bill.id}.")
+            bill.recalculate_and_save()
+            broadcast_bill_and_order_updates(f"Discount update for bill #{bill.id}.",bill)
             return Response(BillSerializer(bill).data)
 
     except (Bill.DoesNotExist, Customer.DoesNotExist):
@@ -263,8 +275,8 @@ def customer_remove_discount(request, bill_id):
         bill.applied_discount = None
         bill.discount_amount = Decimal('0.00')
         bill.discount_request_pending = False
-        bill.save()
-        broadcast_bill_update(f"Discount removed from bill #{bill.id}.")
+        bill.recalculate_and_save()
+        broadcast_bill_and_order_updates(f"Discount removed from bill #{bill.id}.",bill)
         return Response(BillSerializer(bill).data)
 
     except (Bill.DoesNotExist, Customer.DoesNotExist):
@@ -313,14 +325,13 @@ class ApplyCoinsView(APIView):
         COIN_VALUE = Decimal('0.10')  # adjust as needed
         bill.coin_discount = Decimal(coins_to_apply) * COIN_VALUE
         bill.coins_redeemed = coins_to_apply   # <-- Add this line to save number of coins redeemed
-        bill.save()
 
         bill.recalculate_and_save() 
 
         # Deduct used coins from customer balance
         customer.loyalty_coins -= coins_to_apply
         customer.save()
-        broadcast_bill_update(f"Coins applied to bill #{bill.id}.") 
+        broadcast_bill_and_order_updates(f"Coins applied to bill #{bill.id}.",bill) 
         return Response({
             "message": f"{coins_to_apply} coins applied successfully",
             "coins_value": str(bill.coin_discount),
@@ -346,15 +357,13 @@ def remove_coins(request, bill_id):
     # Remove coin discount and coins redeemed
     bill.coin_discount = Decimal('0.00')
     bill.coins_redeemed = 0
-    bill.save()
-
-    # Recalculate totals after removal
     bill.recalculate_and_save()
+
 
     # Refund coins to customer
     customer.loyalty_coins += coins_redeemed
     customer.save()
-    broadcast_bill_update(f"Coins removed from bill #{bill.id}.")
+    broadcast_bill_and_order_updates(f"Coins removed from bill #{bill.id}.",bill)
     return Response({
         "message": f"Removed {coins_redeemed} coins from the bill.",
         "remaining_coins": customer.loyalty_coins,
@@ -369,8 +378,8 @@ def admin_remove_discount(request, bill_id):
         bill.applied_discount = None
         bill.discount_amount = Decimal('0.00')
         bill.discount_request_pending = False
-        bill.save()
-        broadcast_bill_update(f"Admin removed discount from bill #{bill.id}.")
+        bill.recalculate_and_save()
+        broadcast_bill_and_order_updates(f"Admin removed discount from bill #{bill.id}.",bill)
         return Response(BillSerializer(bill).data)
     except Bill.DoesNotExist:
         return Response({'error': 'Bill not found or already paid.'}, status=404)

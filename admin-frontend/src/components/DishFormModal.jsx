@@ -63,7 +63,7 @@ const DishFormModal = ({
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit =  (e) => {
     e.preventDefault();
 
     const data = new FormData();
@@ -88,19 +88,7 @@ const DishFormModal = ({
     for (let pair of data.entries()) {
       console.log(pair[0], pair[1]);
     }
-
-    try {
-      const response = await apiClient.post("/menu/dishes/", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      console.log("✅ Dish saved:", response.data);
-      onSave();
-      onClose();
-      onDataRefresh();
-    } catch (err) {
-      console.error("❌ Failed to save dish:", err.response?.data || err);
-      alert("Failed to save dish. Check console for details.");
-    }
+    onSave(data);
   };
 
   const handleRecipeChange = (e) => {

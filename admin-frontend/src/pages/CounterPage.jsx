@@ -77,7 +77,7 @@ const CounterPage = () => {
             try {
                 const [dishesResponse, categoriesResponse, customersResponse] = await Promise.all([
                     apiClient.get('/menu/pos-dishes/'),
-                    apiClient.get('/menu/categories/'),
+                    apiClient.get('/menu/pos-categories/'),
                     apiClient.get('/customers/')
                 ]);
 

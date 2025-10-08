@@ -17,6 +17,14 @@ from .serializers import (
     DishIngredientSerializer
 )
 
+class POSCategoryViewSet(ReadOnlyModelViewSet):
+    """
+    Provides a list of ALL categories for staff-facing interfaces.
+    """
+    queryset = Category.objects.all().order_by('name')
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdminUser] 
+
 class DishIngredientViewSet(viewsets.ModelViewSet):
     """
     API endpoint for managing the ingredients of a specific dish.
@@ -45,7 +53,7 @@ class DishViewSet(viewsets.ModelViewSet):
         """
         Base queryset that can be filtered by the 'is_available' query parameter.
         """
-        queryset = Dish.objects.all().order_by('category__name', 'name')
+        queryset = Dish.objects.filter(category__is_point_of_sale_only=False).order_by('category__name', 'name')
         
         # Check for the 'is_available' query parameter
         is_available_param = self.request.query_params.get('is_available')
@@ -227,3 +235,25 @@ class POSDishViewSet(ReadOnlyModelViewSet):
         Return only the dishes that belong to a POS-only category.
         """
         return Dish.objects.all().order_by('category__name', 'name')
+
+
+class ManageCategoryViewSet(viewsets.ModelViewSet):
+    """
+    Admin endpoint to manage ALL categories, including POS-only ones.
+    """
+    queryset = Category.objects.all().order_by('name')
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdminUser]
+
+class ManageDishViewSet(viewsets.ModelViewSet):
+    """
+    Admin endpoint to manage ALL dishes, including those in POS-only categories.
+    """
+    queryset = Dish.objects.all().order_by('name')
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
+    permission_classes = [IsAdminUser]
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return DishSerializer
+        return DishWriteSerializer

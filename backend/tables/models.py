@@ -19,7 +19,7 @@ class Table(models.Model):
         # Only generate a new QR code if the table is first created.
         if not self.pk:
             # --- 2. Define the layout and content ---
-            frontend_url = f"http://localhost:5173/menu?table={self.table_number}"
+            frontend_url = f"http://localhost:5173/?table={self.table_number}"
             cafe_name = "Sweet Foods" # Your cafe's name
             table_text = f"Table {self.table_number}"
             

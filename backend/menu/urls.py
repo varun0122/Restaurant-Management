@@ -1,21 +1,22 @@
-# menu/urls.py
-
 from django.urls import path, include
-from rest_framework_nested import routers # Use the nested router
+from rest_framework_nested import routers
 from . import views
 
-# Create the main router
 router = routers.DefaultRouter()
-router.register(r'pos-dishes', views.POSDishViewSet, basename='pos-dish')
+
+# --- Group all main router registrations together ---
 router.register(r'categories', views.CategoryViewSet, basename='category')
 router.register(r'dishes', views.DishViewSet, basename='dish')
+router.register(r'pos-dishes', views.POSDishViewSet, basename='pos-dish')
+router.register(r'pos-categories', views.POSCategoryViewSet, basename='pos-category')
 
-# Create a nested router for dish ingredients
-# This will create URLs like /dishes/{dish_pk}/ingredients/
+# --- Create nested router after main registrations are done ---
 dishes_router = routers.NestedDefaultRouter(router, r'dishes', lookup='dish')
 dishes_router.register(r'ingredients', views.DishIngredientViewSet, basename='dish-ingredients')
+router.register(r'manage-categories', views.ManageCategoryViewSet, basename='manage-category')
+router.register(r'manage-dishes', views.ManageDishViewSet, basename='manage-dish')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('', include(dishes_router.urls)), # Include the nested URLs
+    path('', include(dishes_router.urls)),
 ]

@@ -25,10 +25,10 @@ const MenuManagementPage = () => {
         try {
             setLoading(true);
             const [dishesResponse, categoriesResponse, ingredientsResponse] = await Promise.all([
-                apiClient.get('/menu/dishes/'),
-                apiClient.get('/menu/categories/'),
-                apiClient.get('/inventory/')
-            ]);
+            apiClient.get('/menu/manage-dishes/'),
+            apiClient.get('/menu/manage-categories/'),
+            apiClient.get('/inventory/')
+        ]);
             setDishes(dishesResponse.data);
             setCategories(categoriesResponse.data);
             setAllIngredients(ingredientsResponse.data);
@@ -142,29 +142,45 @@ const MenuManagementPage = () => {
     };
     const handleOpenDishModal = (dish = null) => { setEditingDish(dish); setIsDishModalOpen(true); };
     const handleCloseDishModal = () => { setEditingDish(null); setIsDishModalOpen(false); };
-    const handleSaveDish = async (formData) => {
-        const data = new FormData(); Object.keys(formData).forEach(key => { if (key === 'image' && typeof formData[key] === 'string') return; data.append(key, formData[key]); });
-        try {
-            if (editingDish) { await apiClient.put(`/menu/dishes/${editingDish.id}/`, data, { headers: { 'Content-Type': 'multipart/form-data' } }); } else { await apiClient.post('/menu/dishes/', data, { headers: { 'Content-Type': 'multipart/form-data' } }); }
-            fetchData(); handleCloseDishModal();
-        } catch (err) { alert(`Failed to save dish: ${err.response?.data?.detail || err.message}`); }
-    };
+    const handleSaveDish = async (dishData) => { // This now receives the FormData object
+    try {
+        if (editingDish) {
+            // --- UPDATE ---
+            // Send a PUT request for updates
+            await apiClient.put(`/menu/manage-dishes/${editingDish.id}/`, dishData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+        } else {
+            // --- CREATE ---
+            // Send a POST request for new dishes
+            await apiClient.post('/menu/manage-dishes/', dishData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+        }
+        fetchData(); // Refresh the main data grid
+        handleCloseDishModal(); // Close the modal on success
+    } catch (err) {
+        // Your existing error handling
+        alert(`Failed to save dish: ${err.response?.data?.detail || JSON.stringify(err.response?.data) || err.message}`);
+    }
+};
+
     const handleDeleteDish = async (dishId) => {
         if (window.confirm('Are you sure you want to delete this dish?')) {
-            try { await apiClient.delete(`/menu/dishes/${dishId}/`); setDishes(dishes.filter(dish => dish.id !== dishId)); } catch (err) { alert('Failed to delete dish.', err); }
+            try { await apiClient.delete(`/menu/manage-dishes/${dishId}/`); setDishes(dishes.filter(dish => dish.id !== dishId)); } catch (err) { alert('Failed to delete dish.', err); }
         }
     };
     const handleOpenCategoryModal = (category = null) => { setEditingCategory(category); setIsCategoryModalOpen(true); };
     const handleCloseCategoryModal = () => { setEditingCategory(null); setIsCategoryModalOpen(false); };
     const handleSaveCategory = async (formData) => {
         try {
-            if (editingCategory) { await apiClient.put(`/menu/categories/${editingCategory.id}/`, formData); } else { await apiClient.post('/menu/categories/', formData); }
+            if (editingCategory) { await apiClient.put(`/menu/manage-categories/${editingCategory.id}/`, formData); } else { await apiClient.post('/menu/manage-categories/', formData); }
             fetchData(); handleCloseCategoryModal();
         } catch (err) { alert(`Failed to save category: ${err.response?.data?.detail || err.message}`); }
     };
     const handleDeleteCategory = async (categoryId) => {
         if (window.confirm('Are you sure you want to delete this category? This may affect existing dishes.')) {
-            try { await apiClient.delete(`/menu/categories/${categoryId}/`); fetchData(); } catch (err) { alert('Failed to delete category.', err); }
+            try { await apiClient.delete(`/menu/manage-categories/${categoryId}/`); fetchData(); } catch (err) { alert('Failed to delete category.', err); }
         }
     };
 
